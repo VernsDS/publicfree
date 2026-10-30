@@ -7,6 +7,8 @@ const helmet = require('helmet');
 const mongoose = require('mongoose');
 
 const app = express();
+
+// Trust proxy sangat penting untuk Vercel agar bisa membaca IP asli user
 app.set('trust proxy', 1);
 app.use(cors());
 app.use(express.json());
@@ -15,10 +17,10 @@ app.use(helmet({ contentSecurityPolicy: false }));
 // ================= DATABASE MONGODB =================
 const MONGODB_URI = process.env.MONGODB_URI; 
 
+// Koneksi MongoDB (Tanpa opsi usenewurlparser untuk Mongoose versi terbaru)
 mongoose.connect(MONGODB_URI)
     .then(() => console.log('✅ Terhubung ke Database MongoDB!'))
     .catch(err => {
-        // INI AKAN MEMUNCULKAN PENYEBAB ASLI ERRORNYA
         console.log('❌ KONEKSI MONGODB GAGAL!');
         console.log('Alasan Error:', err.message);
     });
@@ -32,13 +34,17 @@ const UserSchema = new mongoose.Schema({
 const User = mongoose.model('User', UserSchema);
 // ====================================================
 
-// Ambil IP User Asli
+// Ambil IP User Asli (Disesuaikan untuk sistem proxy Vercel)
 const getClientIp = (req) => {
     let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
-    return ip.replace('::ffff:', '');
+    if (ip) {
+        ip = ip.split(',')[0].trim(); // Ambil IP paling depan jika ada banyak (Vercel)
+        return ip.replace('::ffff:', '');
+    }
+    return 'unknown';
 };
 
-// 1. Endpoint Tampilan Web
+// 1. Endpoint Tampilan Web Utama
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -69,7 +75,7 @@ app.post('/api/create', async (req, res) => {
         // Cek Kuota Database
         let user = await User.findOne({ ipAddress: ip });
         if (user && user.usedQuota >= 2) {
-            return res.status(403).json({ success: false, message: "Limit Tercapai: Kamu sudah membuat 2 subdomain." });
+            return res.status(403).json({ success: false, message: "Limit Tercapai: Kamu sudah membuat 2 subdomain dari IP ini." });
         }
 
         // Verifikasi Turnstile Captcha
@@ -96,7 +102,7 @@ app.post('/api/create', async (req, res) => {
             }
         });
 
-        // JIKA SUKSES -> Simpan & Kurangi Kuota di Database
+        // JIKA SUKSES -> Simpan IP & Kurangi Kuota di Database
         if (!user) {
             user = new User({ ipAddress: ip, usedQuota: 1, subdomains: [`${subdomain}.${domain}`] });
         } else {
@@ -116,5 +122,13 @@ app.post('/api/create', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 API Landing Page aktif di port ${PORT}`));
+// ================= PENGATURAN SERVER VERCEL =================
+// Memastikan app.listen HANYA berjalan di komputer lokal (testing),
+// dan otomatis mati saat di-deploy ke Vercel agar tidak menyebabkan crash.
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => console.log(`🚀 API Landing Page aktif di port ${PORT}`));
+}
+
+// WAJIB ADA: Mengekspor aplikasi agar bisa dibaca oleh sistem Vercel Serverless
+module.exports = app;
