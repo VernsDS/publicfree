@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const dns = require('dns');
 const path = require('path');
 const helmet = require('helmet');
 const mongoose = require('mongoose');
@@ -27,32 +28,130 @@ const CF_API_BASE = 'https://api.cloudflare.com/client/v4';
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 // ================= DATABASE MONGODB =================
-// Koneksi di-cache per instance lambda. Tanpa ini, request pertama bisa datang
-// sebelum koneksi selesai dan Mongo "buffering" sampai function timeout.
-let dbPromise = null;
+// Vercel Functions tidak punya jalur IPv6 keluar. Kalau driver memilih alamat
+// IPv6, koneksi hanya akan menggantung sampai serverSelectionTimeout habis.
+// Paksa IPv4 supaya koneksi tidak pernah menunggu jalur yang tidak ada.
+try {
+    dns.setDefaultResultOrder('ipv4first');
+} catch (error) {
+    console.warn('dns.setDefaultResultOrder tidak didukung:', error.message);
+}
+
+// Opsi koneksi yang aman untuk serverless (Vercel)
+const MONGO_OPTIONS = {
+    serverSelectionTimeoutMS: 6000,
+    connectTimeoutMS: 6000,
+    socketTimeoutMS: 30000,
+    maxIdleTimeMS: 60000,
+    maxPoolSize: 5,
+    minPoolSize: 0,
+    family: 4,
+    bufferCommands: false,
+    retryWrites: true,
+    retryReads: true
+};
+
+// Koneksi di-cache per instance lambda, tapi cache-nya dibuang setiap kali
+// koneksi terputus supaya request berikutnya benar-benar menyambung ulang.
+let connectPromise = null;
+
+function waitForConnection(timeoutMs = 6000) {
+    return new Promise((resolve, reject) => {
+        const conn = mongoose.connection;
+        if (conn.readyState === 1) return resolve();
+
+        const timer = setTimeout(() => {
+            cleanup();
+            reject(new Error('Timeout menunggu koneksi MongoDB'));
+        }, timeoutMs);
+
+        const onConnected = () => { cleanup(); resolve(); };
+        const onError = (err) => { cleanup(); reject(err); };
+
+        function cleanup() {
+            clearTimeout(timer);
+            conn.removeListener('connected', onConnected);
+            conn.removeListener('error', onError);
+        }
+
+        conn.once('connected', onConnected);
+        conn.once('error', onError);
+    });
+}
 
 function connectDB() {
     if (mongoose.connection.readyState === 1) return Promise.resolve();
-    if (!MONGODB_URI) return Promise.reject(new Error('MONGODB_URI belum diatur'));
 
-    if (!dbPromise) {
-        dbPromise = mongoose
-            .connect(MONGODB_URI, { serverSelectionTimeoutMS: 8000, maxPoolSize: 5 })
+    if (!MONGODB_URI) {
+        const error = new Error('MONGODB_URI belum diatur di server');
+        error.code = 'MONGODB_URI_MISSING';
+        return Promise.reject(error);
+    }
+
+    // Sedang connecting: pakai promise yang sama supaya tidak buka koneksi ganda
+    if (mongoose.connection.readyState === 2) {
+        return connectPromise || waitForConnection();
+    }
+
+    if (!connectPromise) {
+        connectPromise = mongoose
+            .connect(MONGODB_URI, MONGO_OPTIONS)
             .then(() => {
                 console.log('✅ Terhubung ke Database MongoDB!');
             })
             .catch((err) => {
-                dbPromise = null; // biar request berikutnya mencoba menyambung lagi
-                console.error('❌ KONEKSI MONGODB GAGAL:', err.message);
+                console.error('❌ KONEKSI MONGODB GAGAL:', err.name, '-', err.message);
                 throw err;
+            })
+            .finally(() => {
+                connectPromise = null;
             });
     }
-    return dbPromise;
+    return connectPromise;
 }
 
 mongoose.connection.on('error', (err) => {
     console.error('MongoDB connection error:', err.message);
 });
+
+// Kalau socket mati (Atlas menutup koneksi idle, function di-freeze, dsb.),
+// buang cache koneksi agar request berikutnya menyambung ulang.
+['disconnected', 'close'].forEach((event) => {
+    mongoose.connection.on(event, () => {
+        connectPromise = null;
+        if (event === 'disconnected') {
+            console.warn('⚠️ Koneksi MongoDB terputus. Akan menyambung ulang saat ada request.');
+        }
+    });
+});
+
+// Klasifikasi error database (aman ditampilkan, tanpa detail rahasia)
+const classifyDbError = (error) => {
+    if (!error) return 'UNKNOWN';
+    if (error.code === 'MONGODB_URI_MISSING') return 'MONGODB_URI_MISSING';
+
+    const name = String(error.name || '');
+    const message = String(error.message || '');
+    const combined = name + ' ' + message;
+
+    if (name === 'MongoParseError' || /URI malformed|Invalid scheme/i.test(message)) return 'INVALID_URI';
+    if (/ENOTFOUND|EAI_AGAIN|querySrv|queryTxt/i.test(message)) return 'DNS_ERROR';
+    if (/Authentication failed|bad auth|SCRAM/i.test(message)) return 'AUTH_FAILED';
+    if (name === 'MongoServerError' && [13, 18, 8000].includes(error.code)) return 'AUTH_FAILED';
+    if (/MongoNotConnectedError|Client must be connected|buffering timed out|topology is closed|connection .* closed/i.test(combined)) return 'CONNECTION_LOST';
+    if (name === 'MongoServerSelectionError' || name === 'MongoNetworkError' || /ETIMEDOUT|ECONNREFUSED|EHOSTUNREACH|ENETUNREACH|timed out/i.test(message)) return 'NETWORK_UNREACHABLE';
+    return 'UNKNOWN';
+};
+
+const DB_ERROR_HINTS = {
+    MONGODB_URI_MISSING: 'Env var MONGODB_URI belum diisi di Vercel (Settings > Environment Variables).',
+    INVALID_URI: 'Format connection string salah. Salin ulang tanpa tanda kutip atau spasi tambahan.',
+    AUTH_FAILED: 'Username/password database salah, atau user belum punya akses ke database ini.',
+    DNS_ERROR: 'DNS gagal me-resolve host MongoDB Atlas dari server Vercel.',
+    NETWORK_UNREACHABLE: 'Vercel tidak bisa menjangkau cluster. Buka Atlas > Network Access, izinkan 0.0.0.0/0, dan pastikan cluster tidak paused.',
+    CONNECTION_LOST: 'Koneksi ke database terputus. Coba muat ulang; server akan menyambung ulang otomatis.',
+    UNKNOWN: 'Cek Runtime Logs di dashboard Vercel untuk detail error-nya.'
+};
 
 // Skema Database User (Menyimpan IP, Jumlah Kuota, dan Daftar Subdomain)
 const SubdomainRecordSchema = new mongoose.Schema(
@@ -241,6 +340,7 @@ const rollbackQuota = async (ip) => {
 };
 
 const persistRecord = async (ip, record) => {
+    await connectDB();
     await User.updateOne(
         { ipAddress: ip },
         {
@@ -252,9 +352,26 @@ const persistRecord = async (ip, record) => {
     );
 };
 
+// Baca data dengan satu kali percobaan ulang kalau koneksi ternyata sudah mati.
+// Hanya dipakai untuk operasi baca supaya tidak ada risiko data dobel.
+const TRANSIENT_DB_ERROR = /MongoNotConnectedError|Client must be connected|buffering timed out|topology is closed|connection .* closed/i;
+
+const withDB = async (operation) => {
+    try {
+        await connectDB();
+        return await operation();
+    } catch (error) {
+        if (!TRANSIENT_DB_ERROR.test(String(error?.name || '') + ' ' + String(error?.message || ''))) {
+            throw error;
+        }
+        connectPromise = null;
+        await connectDB();
+        return operation();
+    }
+};
+
 const loadOwnedData = async (ip) => {
-    await connectDB();
-    const user = await User.findOne({ ipAddress: ip }).lean();
+    const user = await withDB(() => User.findOne({ ipAddress: ip }).lean());
     const used = Math.max(0, Number(user?.usedQuota) || 0);
     return {
         used,
@@ -368,6 +485,7 @@ app.post('/api/create', async (req, res) => {
     // --- Cek & pesan kuota ---
     let reserved;
     try {
+        await connectDB();
         const before = await User.findOne({ ipAddress: ip }).lean();
         if (listSubdomains(before).some((item) => normalizeName(item.name) === fqdn)) {
             return res.status(409).json({ success: false, message: `${fqdn} sudah pernah kamu buat dari IP ini.` });
@@ -431,11 +549,16 @@ app.get('/api/health', async (req, res) => {
     };
 
     let database = 'disconnected';
+    let databaseError = null;
+    let databaseHint = null;
     try {
         await connectDB();
         database = mongoose.connection.readyState === 1 ? 'connected' : 'connecting';
     } catch (error) {
         database = 'error';
+        databaseError = classifyDbError(error);
+        databaseHint = DB_ERROR_HINTS[databaseError];
+        console.error('Health check database:', error.name, '-', error.message);
     }
 
     let cloudflare = 'not_configured';
@@ -458,7 +581,11 @@ app.get('/api/health', async (req, res) => {
         quotaPerIp: MAX_SUBDOMAINS,
         config,
         database,
-        cloudflare
+        databaseError,
+        databaseHint,
+        cloudflare,
+        region: process.env.VERCEL_REGION || null,
+        node: process.version
     });
 });
 
