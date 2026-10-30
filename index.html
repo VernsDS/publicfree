@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeSubdomain | Build Your Space</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <!-- Script Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    
+    <style>
+        :root {
+            --bg: #000000;
+            --surface: #0a0a0a;
+            --border: #1f1f1f;
+            --primary: #FFD700;
+            --primary-glow: rgba(255, 215, 0, 0.4);
+            --text: #ededed;
+            --text-muted: #888888;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(75, 0, 130, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 100% 50%, rgba(0, 0, 205, 0.1) 0%, transparent 40%);
+        }
+
+        /* Navbar */
+        nav {
+            width: 100%; padding: 20px 40px; display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 1px solid var(--border); backdrop-filter: blur(10px);
+        }
+        .logo { font-weight: 900; font-size: 20px; letter-spacing: -1px; }
+        .logo span { color: var(--primary); }
+        .btn-join {
+            background: rgba(255,255,255,0.05); color: #fff; text-decoration: none;
+            padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border);
+            font-size: 13px; font-weight: 500; transition: 0.3s;
+        }
+        .btn-join:hover { background: #25D366; color: #000; border-color: #25D366; }
+
+        /* Hero Section */
+        .hero { text-align: center; margin-top: 60px; margin-bottom: 40px; animation: fadeUp 0.8s ease-out; padding: 0 20px; }
+        .hero h1 { font-size: 42px; font-weight: 900; letter-spacing: -2px; margin-bottom: 15px; line-height: 1.1; }
+        .hero p { color: var(--text-muted); font-size: 16px; max-width: 420px; margin: 0 auto; line-height: 1.5; }
+
+        @media (min-width: 768px) {
+            .hero h1 { font-size: 48px; }
+        }
+
+        /* Main Card */
+        .card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+            width: 90%; max-width: 480px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            animation: fadeUp 1s ease-out; margin-bottom: 50px;
+        }
+
+        /* Progress Bar Kuota */
+        .quota-box { margin-bottom: 25px; }
+        .quota-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .quota-header span { color: #fff; }
+        .progress-track { width: 100%; height: 8px; background: #1a1a1a; border-radius: 4px; overflow: hidden; border: 1px solid #333; }
+        .progress-fill { height: 100%; width: 0%; background: var(--primary); transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px var(--primary-glow); }
+        .progress-fill.full { background: #ff3333; box-shadow: 0 0 10px rgba(255,51,51,0.5); }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 16px; }
+        .row-group { display: flex; gap: 8px; }
+        input, select {
+            width: 100%; padding: 14px 16px; background: #000; border: 1px solid var(--border);
+            color: #fff; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px;
+            transition: 0.3s;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.1); }
+        #domain { width: 170px; flex-shrink: 0; background: #111; color: var(--text-muted); font-weight: 600; cursor: not-allowed; }
+        
+        button[type="submit"] {
+            width: 100%; padding: 16px; background: #fff; color: #000; border: none;
+            border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer;
+            transition: all 0.3s ease; margin-top: 10px; font-family: 'Inter', sans-serif;
+        }
+        button:hover:not(:disabled) { background: var(--primary); transform: translateY(-2px); }
+        button:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+        .captcha-box { display: flex; justify-content: center; margin-bottom: 15px; min-height: 65px; width: 100%; overflow: hidden; }
+        
+        /* Alert Messages */
+        .alert { display: none; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-top: 15px; text-align: center; }
+        .alert.error { display: block; background: rgba(255, 0, 0, 0.1); border: 1px solid rgba(255,0,0,0.3); color: #ff4444; }
+        .alert.success { display: block; background: rgba(0, 255, 0, 0.1); border: 1px solid rgba(0,255,0,0.3); color: #00ff88; }
+
+        /* Popup WhatsApp */
+        .popup-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.4s ease; padding: 20px;
+        }
+        .popup-overlay.show { opacity: 1; visibility: visible; }
+        .popup-content {
+            background: var(--surface); padding: 35px 25px; border-radius: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.2); text-align: center; max-width: 360px; width: 100%;
+            box-shadow: 0 20px 50px rgba(255, 215, 0, 0.1); transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .popup-overlay.show .popup-content { transform: scale(1); }
+        .popup-content h3 { font-size: 22px; font-weight: 900; margin-bottom: 12px; color: #fff; }
+        .popup-content p { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
+        .btn-wa-large { display: block; background: #25D366; color: #fff; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 15px; margin-bottom: 15px; transition: 0.3s; box-shadow: 0 10px 20px rgba(37, 211, 102, 0.2); }
+        .btn-wa-large:hover { background: #1ebe57; transform: translateY(-3px); }
+        .btn-close-popup { background: none; border: none; color: #888; font-size: 13px; cursor: pointer; text-decoration: underline; font-family: 'Inter', sans-serif; transition: 0.3s; }
+        .btn-close-popup:hover { color: #fff; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Free<span>Subdomain</span></div>
+        <a href="https://whatsapp.com/channel/0029Vb8s0TwAojYmQgDd5z33" target="_blank" class="btn-join">Saluran WA</a>
+    </nav>
+
+    <div class="hero">
+        <h1>Deploy in seconds.</h1>
+        <p>Amankan subdomain impianmu secara instan. Arahkan ke VPS, Vercel, atau GitHub Pages tanpa biaya.</p>
+    </div>
+
+    <div class="card">
+        <!-- Progress Bar IP Limit -->
+        <div class="quota-box">
+            <div class="quota-header">
+                <div>Limit IP Kamu</div>
+                <div id="quotaText">Memuat...</div>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="quotaFill"></div>
+            </div>
+        </div>
+
+        <form id="createForm">
+            <div class="form-group row-group">
+                <!-- Maxlength diatur ke 30 agar nama subdomain tidak kepanjangan -->
+                <input type="text" id="subdomain" placeholder="namasubdomain" required autocomplete="off" maxlength="30" pattern="[a-zA-Z0-9-]+" title="Hanya huruf, angka, dan strip (-) yang diizinkan">
+                <!-- Dropdown di-disable untuk UI karena hanya 1 opsi, nilainya tetap publicfree.web.id -->
+                <select id="domain" required>
+                    <option value="publicfree.web.id">.publicfree.web.id</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <select id="recordType" required>
+                    <option value="" disabled selected hidden>Tipe Resolusi Target...</option>
+                    <option value="A">A Record (IPv4 Address / VPS)</option>
+                    <option value="CNAME">CNAME (Domain Alias / Vercel)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" id="target" placeholder="IP Address atau Target CNAME" required autocomplete="off">
+            </div>
+
+            <div class="captcha-box">
+                <!-- GANTI DENGAN SITE KEY KAMU. data-theme="dark" ditambahkan agar menyatu dengan background -->
+                <div class="cf-turnstile" data-sitekey="0x4AAAAAAFsfB6KZrDAddSnQ" data-theme="dark"></div>
+            </div>
+
+            <button type="submit" id="btnSubmit">Create Record</button>
+        </form>
+        
+        <div id="alertBox" class="alert"></div>
+    </div>
+
+    <!-- POPUP NOTIFICATION WHATSAPP (Muncul di detik ke-15) -->
+    <div class="popup-overlay" id="waPopup">
+        <div class="popup-content">
+            <h3>📢 Info Penting!</h3>
+            <p>Jangan sampai ketinggalan update kuota & domain gratis terbaru. Wajib gabung saluran WhatsApp owner sekarang!</p>
+            <a href="https://whatsapp.com/channel/0029Vb8s0TwAojYmQgDd5z33" target="_blank" class="btn-wa-large" onclick="closePopup()">Gabung Saluran Sekarang</a>
+            <button class="btn-close-popup" onclick="closePopup()">Nanti saja</button>
+        </div>
+    </div>
+
+    <!-- SCRIPT KEAMANAN FRONTEND -->
+    <script>
+        // Blokir Klik Kanan (Context Menu)
+        document.addEventListener('contextmenu', event => event.preventDefault()); 
+        
+        // Blokir Shortcut Developer Tools (F12, Ctrl+Shift+I, dll)
+        document.onkeydown = function(e) {
+            if (e.keyCode === 123 || 
+               (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
+               (e.ctrlKey && e.keyCode === 85)) {
+                return false;
+            }
+        };
+    </script>
+
+    <!-- SCRIPT LOGIKA UTAMA -->
+    <script>
+        // Timer Popup WA (15.000 ms = 15 detik)
+        setTimeout(() => {
+            document.getElementById('waPopup').classList.add('show');
+        }, 15000);
+
+        function closePopup() {
+            document.getElementById('waPopup').classList.remove('show');
+        }
+
+        const btnSubmit = document.getElementById('btnSubmit');
+        const alertBox = document.getElementById('alertBox');
+        
+        // Fungsi Pengecekan Kuota IP saat load pertama dan setelah submit
+        async function checkStatus() {
+            try {
+                // Catatan: Jika URL backend berbeda saat di Vercel, pastikan API terbaca dengan benar
+                const res = await fetch('/api/status'); 
+                const data = await res.json();
+                
+                document.getElementById('quotaText').innerText = `${data.used} / ${data.limit}`;
+                
+                // Kalkulasi Progress Bar (Maksimal 100% untuk mencegah bug UI melebar)
+                const percentage = Math.min((data.used / data.limit) * 100, 100);
+                const fill = document.getElementById('quotaFill');
+                fill.style.width = `${percentage}%`;
+
+                // Jika limit penuh (2/2 atau lebih), blokir tombol & tampilkan pesan
+                if(data.used >= data.limit) {
+                    fill.classList.add('full');
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerText = 'Limit Kuota Tercapai';
+                    alertBox.className = 'alert error';
+                    alertBox.innerText = 'Kuota kamu sudah habis untuk IP Address ini (Maksimal 2).';
+                }
+            } catch (e) {
+                console.error('Gagal mengambil status kuota dari server.');
+            }
+        }
+        
+        // Eksekusi cek kuota saat web pertama kali dibuka
+        checkStatus();
+
+        // Handle Event Form Submit
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Ambil token dari widget Turnstile
+            const cfToken = document.querySelector('[name="cf-turnstile-response"]').value;
+            
+            if (!cfToken) {
+                alertBox.className = 'alert error'; 
+                alertBox.innerText = 'Verifikasi Captcha belum diselesaikan.';
+                return;
+            }
+
+            // State Processing
+            btnSubmit.innerText = 'Memproses...'; 
+            btnSubmit.disabled = true;
+            alertBox.style.display = 'none'; // Sembunyikan alert lama
+
+            // Filter input subdomain (Hanya izinkan huruf kecil, angka, dan strip)
+            let rawSubdomain = document.getElementById('subdomain').value;
+            let cleanSubdomain = rawSubdomain.toLowerCase().replace(/[^a-z0-9-]/g, '');
+
+            const payload = {
+                subdomain: cleanSubdomain,
+                domain: document.getElementById('domain').value,
+                recordType: document.getElementById('recordType').value,
+                target: document.getElementById('target').value,
+                cfToken: cfToken
+            };
+
+            try {
+                const response = await fetch('/api/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alertBox.className = 'alert success'; 
+                    alertBox.innerHTML = `<strong>Sukses!</strong><br>${result.message}`;
+                    document.getElementById('createForm').reset();
+                    
+                    // Reset Turnstile dengan aman
+                    if (typeof turnstile !== 'undefined') { turnstile.reset(); }
+                    
+                    // Perbarui Progress Bar Kuota
+                    checkStatus(); 
+                } else {
+                    alertBox.className = 'alert error'; 
+                    alertBox.innerHTML = `<strong>Gagal:</strong><br>${result.message}`;
+                    btnSubmit.innerText = 'Create Record'; 
+                    btnSubmit.disabled = false;
+                    if (typeof turnstile !== 'undefined') { turnstile.reset(); }
+                }
+            } catch (err) {
+                alertBox.className = 'alert error'; 
+                alertBox.innerText = 'Terjadi kesalahan jaringan atau server sedang offline.';
+                btnSubmit.innerText = 'Create Record'; 
+                btnSubmit.disabled = false;
+                if (typeof turnstile !== 'undefined') { turnstile.reset(); }
+            }
+        });
+    </script>
+</body>
+</html>
