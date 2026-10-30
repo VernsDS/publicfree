@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
     <!-- Script Cloudflare Turnstile -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    
+
     <style>
         :root {
             --bg: #000000;
@@ -30,7 +30,7 @@
             flex-direction: column;
             align-items: center;
             overflow-x: hidden;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 50% 0%, rgba(75, 0, 130, 0.2) 0%, transparent 50%),
                 radial-gradient(circle at 100% 50%, rgba(0, 0, 205, 0.1) 0%, transparent 40%);
         }
@@ -39,15 +39,24 @@
         nav {
             width: 100%; padding: 20px 40px; display: flex; justify-content: space-between;
             align-items: center; border-bottom: 1px solid var(--border); backdrop-filter: blur(10px);
+            gap: 12px;
         }
         .logo { font-weight: 900; font-size: 20px; letter-spacing: -1px; }
         .logo span { color: var(--primary); }
+        .nav-actions { display: flex; align-items: center; gap: 8px; }
         .btn-join {
             background: rgba(255,255,255,0.05); color: #fff; text-decoration: none;
             padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border);
-            font-size: 13px; font-weight: 500; transition: 0.3s;
+            font-size: 13px; font-weight: 500; transition: 0.3s; white-space: nowrap;
         }
         .btn-join:hover { background: #25D366; color: #000; border-color: #25D366; }
+        .btn-domains {
+            background: rgba(255,215,0,0.08); color: var(--primary); cursor: pointer;
+            padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,215,0,0.35);
+            font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif;
+            transition: 0.3s; white-space: nowrap;
+        }
+        .btn-domains:hover { background: var(--primary); color: #000; }
 
         /* Hero Section */
         .hero { text-align: center; margin-top: 60px; margin-bottom: 40px; animation: fadeUp 0.8s ease-out; padding: 0 20px; }
@@ -67,11 +76,23 @@
 
         /* Progress Bar Kuota */
         .quota-box { margin-bottom: 25px; }
-        .quota-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .quota-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
         .quota-header span { color: #fff; }
+        #quotaText { color: #fff; flex-shrink: 0; }
+        .quota-badge {
+            display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px;
+            background: rgba(255,215,0,0.12); color: var(--primary); border: 1px solid rgba(255,215,0,0.25);
+            font-size: 10px; font-weight: 700; letter-spacing: 0.3px; text-transform: none;
+        }
         .progress-track { width: 100%; height: 8px; background: #1a1a1a; border-radius: 4px; overflow: hidden; border: 1px solid #333; }
         .progress-fill { height: 100%; width: 0%; background: var(--primary); transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px var(--primary-glow); }
         .progress-fill.full { background: #ff3333; box-shadow: 0 0 10px rgba(255,51,51,0.5); }
+        .quota-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 8px; font-size: 12px; color: var(--text-muted); min-height: 18px; }
+        .quota-retry {
+            background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer;
+            text-decoration: underline; font-family: 'Inter', sans-serif; padding: 0; flex-shrink: 0;
+        }
+        .quota-retry[hidden] { display: none; }
 
         /* Form Elements */
         .form-group { margin-bottom: 16px; }
@@ -83,7 +104,7 @@
         }
         input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.1); }
         #domain { width: 170px; flex-shrink: 0; background: #111; color: var(--text-muted); font-weight: 600; cursor: not-allowed; }
-        
+
         button[type="submit"] {
             width: 100%; padding: 16px; background: #fff; color: #000; border: none;
             border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer;
@@ -92,10 +113,18 @@
         button:hover:not(:disabled) { background: var(--primary); transform: translateY(-2px); }
         button:disabled { background: #333; color: #666; cursor: not-allowed; }
 
+        .btn-list {
+            width: 100%; margin-top: 10px; padding: 13px; background: transparent;
+            border: 1px solid var(--primary); color: var(--primary); border-radius: 8px;
+            font-weight: 600; font-size: 14px; cursor: pointer; font-family: 'Inter', sans-serif;
+            transition: 0.3s;
+        }
+        .btn-list:hover { background: var(--primary); color: #000; }
+
         .captcha-box { display: flex; justify-content: center; margin-bottom: 15px; min-height: 65px; width: 100%; overflow: hidden; }
-        
+
         /* Alert Messages */
-        .alert { display: none; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-top: 15px; text-align: center; }
+        .alert { display: none; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-top: 15px; text-align: center; line-height: 1.5; }
         .alert.error { display: block; background: rgba(255, 0, 0, 0.1); border: 1px solid rgba(255,0,0,0.3); color: #ff4444; }
         .alert.success { display: block; background: rgba(0, 255, 0, 0.1); border: 1px solid rgba(0,255,0,0.3); color: #00ff88; }
 
@@ -120,9 +149,51 @@
         .btn-close-popup { background: none; border: none; color: #888; font-size: 13px; cursor: pointer; text-decoration: underline; font-family: 'Inter', sans-serif; transition: 0.3s; }
         .btn-close-popup:hover { color: #fff; }
 
+        /* Modal List Domain Saya */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10000; opacity: 0; visibility: hidden; transition: all 0.3s ease; padding: 20px;
+        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-card {
+            background: var(--surface); border: 1px solid rgba(255,215,0,0.18); border-radius: 18px;
+            width: 100%; max-width: 470px; padding: 22px; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            max-height: 85vh; display: flex; flex-direction: column;
+            transform: scale(0.94); transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .modal-head h3 { font-size: 19px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .modal-x { background: none; border: none; color: #888; font-size: 26px; line-height: 1; cursor: pointer; padding: 0 4px; transition: 0.3s; }
+        .modal-x:hover { color: #fff; }
+        .modal-sub { color: var(--text-muted); font-size: 12.5px; margin: 6px 0 14px; line-height: 1.5; }
+        .domain-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 46vh; flex: 1; padding-right: 2px; }
+        .domain-list::-webkit-scrollbar { width: 6px; }
+        .domain-list::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+        .domain-item { background: #0f0f0f; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+        .domain-name { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-weight: 700; font-size: 13.5px; color: #fff; word-break: break-all; }
+        .domain-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 11px; color: var(--text-muted); margin-top: 7px; word-break: break-all; }
+        .domain-type { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(255,215,0,0.12); color: var(--primary); border: 1px solid rgba(255,215,0,0.25); }
+        .btn-copy { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: #ccc; font-size: 10px; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-family: 'Inter', sans-serif; flex-shrink: 0; transition: 0.3s; }
+        .btn-copy:hover { color: #000; background: var(--primary); border-color: var(--primary); }
+        .domain-empty, .domain-loading { text-align: center; color: var(--text-muted); font-size: 13px; padding: 26px 10px; line-height: 1.7; }
+        .modal-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
+        .btn-refresh { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: #ddd; border-radius: 8px; padding: 7px 12px; font-size: 12px; cursor: pointer; font-family: 'Inter', sans-serif; transition: 0.3s; }
+        .btn-refresh:hover { border-color: var(--primary); color: var(--primary); }
+
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 560px) {
+            nav { padding: 16px 16px; }
+            .logo { font-size: 17px; }
+            .btn-join, .btn-domains { padding: 7px 11px; font-size: 12px; }
+            .hero h1 { font-size: 34px; }
+            .card { padding: 22px; }
         }
     </style>
 </head>
@@ -130,7 +201,10 @@
 
     <nav>
         <div class="logo">Free<span>Subdomain</span></div>
-        <a href="https://whatsapp.com/channel/0029Vb8s0TwAojYmQgDd5z33" target="_blank" class="btn-join">Saluran WA</a>
+        <div class="nav-actions">
+            <button type="button" class="btn-domains" id="btnDomains">List Domain Saya</button>
+            <a href="https://whatsapp.com/channel/0029Vb8s0TwAojYmQgDd5z33" target="_blank" class="btn-join">Saluran WA</a>
+        </div>
     </nav>
 
     <div class="hero">
@@ -142,11 +216,15 @@
         <!-- Progress Bar IP Limit -->
         <div class="quota-box">
             <div class="quota-header">
-                <div>Limit IP Kamu</div>
+                <div>Limit IP Kamu <span class="quota-badge">1 IP Address = 2x Kuota</span></div>
                 <div id="quotaText">Memuat...</div>
             </div>
             <div class="progress-track">
                 <div class="progress-fill" id="quotaFill"></div>
+            </div>
+            <div class="quota-footer">
+                <span id="quotaLeft">Mengecek kuota IP kamu...</span>
+                <button type="button" class="quota-retry" id="quotaRetry" hidden>Coba lagi</button>
             </div>
         </div>
 
@@ -159,7 +237,7 @@
                     <option value="publicfree.web.id">.publicfree.web.id</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <select id="recordType" required>
                     <option value="" disabled selected hidden>Tipe Resolusi Target...</option>
@@ -167,7 +245,7 @@
                     <option value="CNAME">CNAME (Domain Alias / Vercel)</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <input type="text" id="target" placeholder="IP Address atau Target CNAME" required autocomplete="off">
             </div>
@@ -179,8 +257,26 @@
 
             <button type="submit" id="btnSubmit">Create Record</button>
         </form>
-        
+
+        <button type="button" class="btn-list" id="btnDomainsCard">Lihat List Domain Saya</button>
+
         <div id="alertBox" class="alert"></div>
+    </div>
+
+    <!-- MODAL LIST DOMAIN SAYA -->
+    <div class="modal-overlay" id="domainsModal">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3>Domain Saya</h3>
+                <button type="button" class="modal-x" id="domainsClose" aria-label="Tutup">&times;</button>
+            </div>
+            <p class="modal-sub">Seluruh subdomain yang dibuat dari IP Address ini. Maksimal 2 subdomain per IP Address.</p>
+            <div class="domain-list" id="domainList"></div>
+            <div class="modal-foot">
+                <span id="domainsQuota">—</span>
+                <button type="button" class="btn-refresh" id="domainsRefresh">Muat ulang</button>
+            </div>
+        </div>
     </div>
 
     <!-- POPUP NOTIFICATION WHATSAPP (Muncul di detik ke-15) -->
@@ -196,12 +292,12 @@
     <!-- SCRIPT KEAMANAN FRONTEND -->
     <script>
         // Blokir Klik Kanan (Context Menu)
-        document.addEventListener('contextmenu', event => event.preventDefault()); 
-        
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
         // Blokir Shortcut Developer Tools (F12, Ctrl+Shift+I, dll)
         document.onkeydown = function(e) {
-            if (e.keyCode === 123 || 
-               (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
+            if (e.keyCode === 123 ||
+               (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) ||
                (e.ctrlKey && e.keyCode === 85)) {
                 return false;
             }
@@ -219,102 +315,368 @@
             document.getElementById('waPopup').classList.remove('show');
         }
 
-        const btnSubmit = document.getElementById('btnSubmit');
-        const alertBox = document.getElementById('alertBox');
-        
-        // Fungsi Pengecekan Kuota IP saat load pertama dan setelah submit
-        async function checkStatus() {
-            try {
-                // Catatan: Jika URL backend berbeda saat di Vercel, pastikan API terbaca dengan benar
-                const res = await fetch('/api/status'); 
-                const data = await res.json();
-                
-                document.getElementById('quotaText').innerText = `${data.used} / ${data.limit}`;
-                
-                // Kalkulasi Progress Bar (Maksimal 100% untuk mencegah bug UI melebar)
-                const percentage = Math.min((data.used / data.limit) * 100, 100);
-                const fill = document.getElementById('quotaFill');
-                fill.style.width = `${percentage}%`;
+        const els = {
+            form: document.getElementById('createForm'),
+            subdomain: document.getElementById('subdomain'),
+            domain: document.getElementById('domain'),
+            recordType: document.getElementById('recordType'),
+            target: document.getElementById('target'),
+            btnSubmit: document.getElementById('btnSubmit'),
+            btnDomains: document.getElementById('btnDomains'),
+            btnDomainsCard: document.getElementById('btnDomainsCard'),
+            alertBox: document.getElementById('alertBox'),
+            quotaText: document.getElementById('quotaText'),
+            quotaFill: document.getElementById('quotaFill'),
+            quotaLeft: document.getElementById('quotaLeft'),
+            quotaRetry: document.getElementById('quotaRetry'),
+            modal: document.getElementById('domainsModal'),
+            domainsClose: document.getElementById('domainsClose'),
+            domainsRefresh: document.getElementById('domainsRefresh'),
+            domainsQuota: document.getElementById('domainsQuota'),
+            domainList: document.getElementById('domainList')
+        };
 
-                // Jika limit penuh (2/2 atau lebih), blokir tombol & tampilkan pesan
-                if(data.used >= data.limit) {
-                    fill.classList.add('full');
-                    btnSubmit.disabled = true;
-                    btnSubmit.innerText = 'Limit Kuota Tercapai';
-                    alertBox.className = 'alert error';
-                    alertBox.innerText = 'Kuota kamu sudah habis untuk IP Address ini (Maksimal 2).';
+        const state = { used: 0, limit: 2, subdomains: [], statusLoaded: false };
+        let submitting = false;
+
+        // ---------- Helper ----------
+        function showAlert(kind, message) {
+            els.alertBox.className = 'alert ' + kind;
+            els.alertBox.textContent = message;
+        }
+
+        function hideAlert() {
+            els.alertBox.className = 'alert';
+            els.alertBox.textContent = '';
+        }
+
+        // fetch + penanganan error yang tidak pernah menggantung tanpa pesan
+        async function apiFetch(pathname, options) {
+            const opts = options || {};
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 25000);
+            try {
+                const res = await fetch(pathname, {
+                    ...opts,
+                    signal: controller.signal,
+                    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) }
+                });
+                const raw = await res.text();
+                let data = null;
+                if (raw) {
+                    try { data = JSON.parse(raw); } catch (e) { data = null; }
                 }
-            } catch (e) {
-                console.error('Gagal mengambil status kuota dari server.');
+                if (!data || typeof data !== 'object') {
+                    throw new Error(res.ok
+                        ? 'Respons server tidak valid (bukan JSON).'
+                        : 'Server mengirim error ' + res.status + '.');
+                }
+                if (!res.ok || data.success === false) {
+                    throw new Error(data.message || ('Permintaan gagal dengan status ' + res.status + '.'));
+                }
+                return data;
+            } catch (err) {
+                if (err.name === 'AbortError') throw new Error('Server tidak merespons (timeout). Coba lagi.');
+                if (err instanceof TypeError) throw new Error('Tidak bisa menghubungi server. Cek koneksi internetmu.');
+                throw err;
+            } finally {
+                clearTimeout(timer);
             }
         }
-        
-        // Eksekusi cek kuota saat web pertama kali dibuka
-        checkStatus();
 
-        // Handle Event Form Submit
-        document.getElementById('createForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // Ambil token dari widget Turnstile
-            const cfToken = document.querySelector('[name="cf-turnstile-response"]').value;
-            
-            if (!cfToken) {
-                alertBox.className = 'alert error'; 
-                alertBox.innerText = 'Verifikasi Captcha belum diselesaikan.';
+        function applyQuotaData(data) {
+            state.limit = Number(data.limit) > 0 ? Number(data.limit) : 2;
+            state.used = Math.max(0, Number(data.used) || 0);
+            state.subdomains = Array.isArray(data.subdomains) ? data.subdomains : [];
+            state.statusLoaded = true;
+        }
+
+        function renderQuota() {
+            const { used, limit } = state;
+            els.quotaText.innerText = used + ' / ' + limit;
+            els.quotaFill.style.width = Math.min((used / limit) * 100, 100) + '%';
+            els.quotaFill.classList.toggle('full', used >= limit);
+
+            if (used >= limit) {
+                els.quotaLeft.innerText = 'Kuota habis untuk IP Address ini.';
+            } else {
+                els.quotaLeft.innerText = 'Sisa ' + (limit - used) + ' dari ' + limit + ' kuota untuk IP Address ini.';
+            }
+
+            els.btnDomains.innerText = state.statusLoaded
+                ? 'List Domain Saya (' + state.subdomains.length + ')'
+                : 'List Domain Saya';
+
+            updateSubmitState();
+        }
+
+        function updateSubmitState() {
+            if (submitting) return;
+            if (state.statusLoaded && state.used >= state.limit) {
+                els.btnSubmit.disabled = true;
+                els.btnSubmit.innerText = 'Limit Kuota Tercapai';
+            } else {
+                els.btnSubmit.disabled = false;
+                els.btnSubmit.innerText = 'Create Record';
+            }
+        }
+
+        // ---------- Kuota ----------
+        async function loadStatus() {
+            els.quotaText.innerText = 'Memuat...';
+            els.quotaLeft.innerText = 'Mengecek kuota IP kamu...';
+            els.quotaRetry.hidden = true;
+            els.quotaFill.style.width = '0%';
+            els.quotaFill.classList.remove('full');
+
+            try {
+                const data = await apiFetch('/api/status');
+                applyQuotaData(data);
+                renderQuota();
+                if (state.used >= state.limit) {
+                    showAlert('error', 'Kuota kamu sudah habis untuk IP Address ini. 1 IP Address hanya mendapat ' + state.limit + 'x kuota subdomain.');
+                }
+            } catch (err) {
+                state.statusLoaded = false;
+                els.quotaText.innerText = 'Gagal dimuat';
+                els.quotaLeft.innerText = err.message;
+                els.quotaRetry.hidden = false;
+                els.btnSubmit.disabled = false;
+                els.btnSubmit.innerText = 'Create Record';
+            }
+        }
+
+        // ---------- List Domain Saya ----------
+        function renderDomainList(items) {
+            els.domainList.textContent = '';
+
+            if (!items.length) {
+                const empty = document.createElement('div');
+                empty.className = 'domain-empty';
+                empty.innerText = 'Belum ada subdomain yang kamu buat dari IP Address ini.';
+                els.domainList.appendChild(empty);
                 return;
             }
 
-            // State Processing
-            btnSubmit.innerText = 'Memproses...'; 
-            btnSubmit.disabled = true;
-            alertBox.style.display = 'none'; // Sembunyikan alert lama
+            items.forEach(function(item) {
+                const row = document.createElement('div');
+                row.className = 'domain-item';
 
-            // Filter input subdomain (Hanya izinkan huruf kecil, angka, dan strip)
-            let rawSubdomain = document.getElementById('subdomain').value;
-            let cleanSubdomain = rawSubdomain.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                const top = document.createElement('div');
+                top.className = 'domain-name';
+                const name = document.createElement('span');
+                name.innerText = item.name;
+                const copy = document.createElement('button');
+                copy.type = 'button';
+                copy.className = 'btn-copy';
+                copy.innerText = 'Salin';
+                copy.addEventListener('click', function() { copyText(item.name, copy); });
+                top.appendChild(name);
+                top.appendChild(copy);
 
-            const payload = {
-                subdomain: cleanSubdomain,
-                domain: document.getElementById('domain').value,
-                recordType: document.getElementById('recordType').value,
-                target: document.getElementById('target').value,
-                cfToken: cfToken
-            };
+                const meta = document.createElement('div');
+                meta.className = 'domain-meta';
+                const typeTag = document.createElement('span');
+                typeTag.className = 'domain-type';
+                typeTag.innerText = item.type || 'A';
+                meta.appendChild(typeTag);
+
+                const details = [];
+                if (item.target) details.push('→ ' + item.target);
+                if (item.createdAt) {
+                    const date = new Date(item.createdAt);
+                    if (!isNaN(date.getTime())) {
+                        details.push(date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }));
+                    }
+                }
+                if (details.length) {
+                    const detail = document.createElement('span');
+                    detail.innerText = details.join(' • ');
+                    meta.appendChild(detail);
+                }
+
+                row.appendChild(top);
+                row.appendChild(meta);
+                els.domainList.appendChild(row);
+            });
+        }
+
+        async function loadDomains() {
+            els.domainList.textContent = '';
+            const loading = document.createElement('div');
+            loading.className = 'domain-loading';
+            loading.innerText = 'Memuat daftar subdomain...';
+            els.domainList.appendChild(loading);
+            els.domainsQuota.innerText = 'Memuat...';
 
             try {
-                const response = await fetch('/api/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                
-                if (result.success) {
-                    alertBox.className = 'alert success'; 
-                    alertBox.innerHTML = `<strong>Sukses!</strong><br>${result.message}`;
-                    document.getElementById('createForm').reset();
-                    
-                    // Reset Turnstile dengan aman
-                    if (typeof turnstile !== 'undefined') { turnstile.reset(); }
-                    
-                    // Perbarui Progress Bar Kuota
-                    checkStatus(); 
-                } else {
-                    alertBox.className = 'alert error'; 
-                    alertBox.innerHTML = `<strong>Gagal:</strong><br>${result.message}`;
-                    btnSubmit.innerText = 'Create Record'; 
-                    btnSubmit.disabled = false;
-                    if (typeof turnstile !== 'undefined') { turnstile.reset(); }
-                }
+                const data = await apiFetch('/api/subdomains');
+                applyQuotaData(data);
+                renderQuota();
+                renderDomainList(state.subdomains);
+                els.domainsQuota.innerText = state.used + ' / ' + state.limit + ' kuota terpakai';
             } catch (err) {
-                alertBox.className = 'alert error'; 
-                alertBox.innerText = 'Terjadi kesalahan jaringan atau server sedang offline.';
-                btnSubmit.innerText = 'Create Record'; 
-                btnSubmit.disabled = false;
-                if (typeof turnstile !== 'undefined') { turnstile.reset(); }
+                els.domainList.textContent = '';
+                const box = document.createElement('div');
+                box.className = 'domain-empty';
+                box.innerText = 'Gagal memuat daftar subdomain. ' + err.message;
+                const retry = document.createElement('button');
+                retry.type = 'button';
+                retry.className = 'btn-refresh';
+                retry.style.marginTop = '12px';
+                retry.innerText = 'Coba lagi';
+                retry.addEventListener('click', loadDomains);
+                box.appendChild(document.createElement('br'));
+                box.appendChild(retry);
+                els.domainList.appendChild(box);
+                els.domainsQuota.innerText = '—';
+            }
+        }
+
+        function openDomains() {
+            els.modal.classList.add('show');
+            if (state.statusLoaded) {
+                renderDomainList(state.subdomains);
+                els.domainsQuota.innerText = state.used + ' / ' + state.limit + ' kuota terpakai';
+            }
+            loadDomains();
+        }
+
+        function closeDomains() {
+            els.modal.classList.remove('show');
+        }
+
+        async function copyText(text, button) {
+            let ok = false;
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    ok = true;
+                }
+            } catch (e) { ok = false; }
+
+            if (!ok) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.top = '-1000px';
+                document.body.appendChild(ta);
+                ta.select();
+                try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+                document.body.removeChild(ta);
+            }
+
+            button.innerText = ok ? 'Tersalin' : 'Gagal';
+            setTimeout(function() { button.innerText = 'Salin'; }, 1600);
+        }
+
+        // ---------- Turnstile ----------
+        function getTurnstileToken() {
+            try {
+                if (typeof turnstile !== 'undefined' && typeof turnstile.getResponse === 'function') {
+                    const token = turnstile.getResponse();
+                    if (token) return token;
+                }
+            } catch (e) { /* widget belum siap */ }
+            const input = document.querySelector('[name="cf-turnstile-response"]');
+            return input ? input.value : '';
+        }
+
+        function resetTurnstile() {
+            try {
+                if (typeof turnstile !== 'undefined' && typeof turnstile.reset === 'function') turnstile.reset();
+            } catch (e) { /* abaikan */ }
+        }
+
+        // ---------- Event ----------
+        els.btnDomains.addEventListener('click', openDomains);
+        els.btnDomainsCard.addEventListener('click', openDomains);
+        els.domainsClose.addEventListener('click', closeDomains);
+        els.domainsRefresh.addEventListener('click', loadDomains);
+        els.quotaRetry.addEventListener('click', loadStatus);
+        els.modal.addEventListener('click', function(e) { if (e.target === els.modal) closeDomains(); });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && els.modal.classList.contains('show')) closeDomains();
+        });
+
+        els.recordType.addEventListener('change', function() {
+            els.target.placeholder = els.recordType.value === 'CNAME'
+                ? 'Contoh: cname.vercel-dns.com'
+                : 'Contoh: 103.123.45.67';
+        });
+
+        els.form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (submitting) return;
+
+            const cleanSubdomain = els.subdomain.value.toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
+            const recordType = els.recordType.value;
+            const target = els.target.value.trim();
+
+            if (!/^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/.test(cleanSubdomain)) {
+                showAlert('error', 'Nama subdomain tidak valid. Gunakan huruf, angka, atau strip (-), maksimal 30 karakter, dan tidak diawali/diakhiri strip.');
+                return;
+            }
+            if (!recordType) {
+                showAlert('error', 'Pilih dulu tipe record (A atau CNAME).');
+                return;
+            }
+            if (recordType === 'A' && !/^(\d{1,3}\.){3}\d{1,3}$/.test(target)) {
+                showAlert('error', 'Target A Record harus alamat IPv4 yang valid, contoh: 103.123.45.67');
+                return;
+            }
+            if (recordType === 'CNAME' && !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(target)) {
+                showAlert('error', 'Target CNAME harus berupa domain yang valid, contoh: cname.vercel-dns.com');
+                return;
+            }
+
+            const cfToken = getTurnstileToken();
+            if (!cfToken) {
+                showAlert('error', 'Verifikasi captcha belum diselesaikan. Tunggu widget captcha muncul lalu centang.');
+                return;
+            }
+
+            submitting = true;
+            els.btnSubmit.innerText = 'Memproses...';
+            els.btnSubmit.disabled = true;
+            hideAlert();
+
+            try {
+                const result = await apiFetch('/api/create', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        subdomain: cleanSubdomain,
+                        domain: els.domain.value,
+                        recordType: recordType,
+                        target: target,
+                        cfToken: cfToken
+                    })
+                });
+
+                showAlert('success', 'Berhasil: ' + result.message);
+                els.form.reset();
+                els.target.placeholder = 'IP Address atau Target CNAME';
+
+                if (Number.isFinite(Number(result.used)) && Number.isFinite(Number(result.limit))) {
+                    state.used = Number(result.used);
+                    state.limit = Number(result.limit);
+                }
+                if (result.subdomain && result.subdomain.name) {
+                    state.subdomains = [result.subdomain].concat(state.subdomains);
+                }
+                state.statusLoaded = true;
+            } catch (err) {
+                showAlert('error', 'Gagal: ' + err.message);
+            } finally {
+                submitting = false;
+                resetTurnstile();
+                renderQuota();
+                loadStatus();
             }
         });
+
+        // Eksekusi cek kuota saat web pertama kali dibuka
+        loadStatus();
     </script>
 </body>
 </html>
