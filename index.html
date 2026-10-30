@@ -3,680 +3,1067 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreeSubdomain | Build Your Space</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
-    <!-- Script Cloudflare Turnstile -->
+    <meta name="theme-color" content="#07070b">
+    <meta name="color-scheme" content="dark">
+    <meta name="description" content="Buat subdomain gratis di publicfree.web.id. Arahkan ke VPS, Vercel, atau GitHub Pages dalam hitungan detik.">
+    <title>FreeSubdomain | Subdomain gratis dalam hitungan detik</title>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
     <style>
+        /* ============ Tokens & reset ============ */
         :root {
-            --bg: #000000;
-            --surface: #0a0a0a;
-            --border: #1f1f1f;
-            --primary: #FFD700;
-            --primary-glow: rgba(255, 215, 0, 0.4);
-            --text: #ededed;
-            --text-muted: #888888;
+            --bg: #07070b;
+            --surface: #0d0d13;
+            --surface-2: #12121a;
+            --border: #23232e;
+            --border-strong: #31313f;
+            --text: #f3f3f7;
+            --muted: #9b9bab;
+            --gold: #ffd54a;
+            --gold-2: #ffab3d;
+            --gold-soft: rgba(255, 213, 74, 0.12);
+            --green: #35d39a;
+            --red: #ff6b6b;
+            --radius: 18px;
+            --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        html { -webkit-text-size-adjust: 100%; }
+
         body {
             background-color: var(--bg);
+            background-image: radial-gradient(1100px 520px at 50% -8%, rgba(124, 84, 255, 0.18), transparent 62%);
+            background-repeat: no-repeat;
             color: var(--text);
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font);
+            font-size: 16px;
+            line-height: 1.5;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             overflow-x: hidden;
-            background-image:
-                radial-gradient(circle at 50% 0%, rgba(75, 0, 130, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 100% 50%, rgba(0, 0, 205, 0.1) 0%, transparent 40%);
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Navbar */
-        nav {
-            width: 100%; padding: 20px 40px; display: flex; justify-content: space-between;
-            align-items: center; border-bottom: 1px solid var(--border); backdrop-filter: blur(10px);
-            gap: 12px;
-        }
-        .logo { font-weight: 900; font-size: 20px; letter-spacing: -1px; }
-        .logo span { color: var(--primary); }
-        .nav-actions { display: flex; align-items: center; gap: 8px; }
-        .btn-join {
-            background: rgba(255,255,255,0.05); color: #fff; text-decoration: none;
-            padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border);
-            font-size: 13px; font-weight: 500; transition: 0.3s; white-space: nowrap;
-        }
-        .btn-join:hover { background: #25D366; color: #000; border-color: #25D366; }
-        .btn-domains {
-            background: rgba(255,215,0,0.08); color: var(--primary); cursor: pointer;
-            padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,215,0,0.35);
-            font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif;
-            transition: 0.3s; white-space: nowrap;
-        }
-        .btn-domains:hover { background: var(--primary); color: #000; }
+        a { color: inherit; }
 
-        /* Hero Section */
-        .hero { text-align: center; margin-top: 60px; margin-bottom: 40px; animation: fadeUp 0.8s ease-out; padding: 0 20px; }
-        .hero h1 { font-size: 42px; font-weight: 900; letter-spacing: -2px; margin-bottom: 15px; line-height: 1.1; }
-        .hero p { color: var(--text-muted); font-size: 16px; max-width: 420px; margin: 0 auto; line-height: 1.5; }
+        button, input, select { font: inherit; color: inherit; }
 
-        @media (min-width: 768px) {
-            .hero h1 { font-size: 48px; }
+        :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+        .wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+
+        /* ============ Header ============ */
+        .site-header {
+            position: sticky; top: 0; z-index: 40;
+            background: rgba(7, 7, 11, 0.92);
+            border-bottom: 1px solid var(--border);
         }
 
-        /* Main Card */
+        .header-inner {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; min-height: 62px;
+        }
+
+        .brand { font-weight: 800; font-size: 18px; letter-spacing: -0.6px; text-decoration: none; white-space: nowrap; }
+        .brand span { color: var(--gold); }
+
+        .header-actions { display: flex; align-items: center; gap: 8px; }
+
+        /* ============ Buttons ============ */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            border-radius: 999px; border: 1px solid var(--border);
+            background: transparent; color: var(--text);
+            padding: 9px 15px; font-size: 13px; font-weight: 600;
+            text-decoration: none; cursor: pointer; white-space: nowrap;
+            transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+        }
+        .btn:hover { border-color: var(--border-strong); background: rgba(255, 255, 255, 0.05); }
+        .btn:active { transform: translateY(1px); }
+
+        .btn-ghost { color: var(--gold); border-color: rgba(255, 213, 74, 0.32); background: var(--gold-soft); }
+        .btn-ghost:hover { background: rgba(255, 213, 74, 0.2); border-color: rgba(255, 213, 74, 0.5); color: var(--gold); }
+
+        .btn-wa { background: #1fbf61; border-color: #1fbf61; color: #04170c; }
+        .btn-wa:hover { background: #26d16d; border-color: #26d16d; color: #04170c; }
+
+        .count {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+            background: rgba(0, 0, 0, 0.35); font-size: 11px; font-weight: 800;
+        }
+
+        .icon-only { padding: 9px 11px; }
+        .icon-only span { display: none; }
+
+        /* ============ Hero / layout ============ */
+        main { padding: 40px 0 56px; }
+
+        .hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-items: start; }
+
+        /* Cegah item grid melebar melewati container (min-width: auto) */
+        .hero-copy, .card { min-width: 0; }
+
+        .eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 5px 11px; border-radius: 999px; margin-bottom: 18px;
+            background: var(--gold-soft); border: 1px solid rgba(255, 213, 74, 0.24);
+            color: var(--gold); font-size: 11px; font-weight: 800; letter-spacing: 0.09em;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 6vw, 3.35rem);
+            line-height: 1.06; letter-spacing: -0.035em; font-weight: 800;
+            margin-bottom: 16px; text-wrap: balance;
+        }
+
+        .accent {
+            background: linear-gradient(100deg, var(--gold), var(--gold-2));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+
+        .hero-lead { color: var(--muted); font-size: 15.5px; max-width: 46ch; }
+
+        .features { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+        .features li {
+            font-size: 12.5px; color: var(--muted); font-weight: 600;
+            padding: 7px 12px; border-radius: 10px;
+            background: var(--surface); border: 1px solid var(--border);
+        }
+
+        /* ============ Card ============ */
         .card {
-            background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
-            width: 90%; max-width: 480px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            animation: fadeUp 1s ease-out; margin-bottom: 50px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
         }
 
-        /* Progress Bar Kuota */
-        .quota-box { margin-bottom: 25px; }
-        .quota-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .quota-header span { color: #fff; }
-        #quotaText { color: #fff; flex-shrink: 0; }
+        .card-title { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 16px; }
+
+        /* ============ Quota ============ */
+        .quota { padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid var(--border); }
+
+        .quota-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 9px; }
+        .quota-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
         .quota-badge {
-            display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px;
-            background: rgba(255,215,0,0.12); color: var(--primary); border: 1px solid rgba(255,215,0,0.25);
-            font-size: 10px; font-weight: 700; letter-spacing: 0.3px; text-transform: none;
+            font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px;
+            background: var(--gold-soft); color: var(--gold); border: 1px solid rgba(255, 213, 74, 0.26);
         }
-        .progress-track { width: 100%; height: 8px; background: #1a1a1a; border-radius: 4px; overflow: hidden; border: 1px solid #333; }
-        .progress-fill { height: 100%; width: 0%; background: var(--primary); transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px var(--primary-glow); }
-        .progress-fill.full { background: #ff3333; box-shadow: 0 0 10px rgba(255,51,51,0.5); }
-        .quota-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 8px; font-size: 12px; color: var(--text-muted); min-height: 18px; }
-        .quota-retry {
-            background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer;
-            text-decoration: underline; font-family: 'Inter', sans-serif; padding: 0; flex-shrink: 0;
-        }
-        .quota-retry[hidden] { display: none; }
+        .quota-value { margin-left: auto; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
 
-        /* Form Elements */
-        .form-group { margin-bottom: 16px; }
-        .row-group { display: flex; gap: 8px; }
-        input, select {
-            width: 100%; padding: 14px 16px; background: #000; border: 1px solid var(--border);
-            color: #fff; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px;
-            transition: 0.3s;
+        .meter { height: 7px; border-radius: 999px; background: #1b1b25; overflow: hidden; }
+        .meter-fill {
+            height: 100%; width: 0%; border-radius: 999px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-2));
+            transition: width .45s ease;
         }
-        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.1); }
-        #domain { width: 170px; flex-shrink: 0; background: #111; color: var(--text-muted); font-weight: 600; cursor: not-allowed; }
+        .meter-fill.full { background: linear-gradient(90deg, #ff7a7a, #ff4d4d); }
 
-        button[type="submit"] {
-            width: 100%; padding: 16px; background: #fff; color: #000; border: none;
-            border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer;
-            transition: all 0.3s ease; margin-top: 10px; font-family: 'Inter', sans-serif;
+        .quota-bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+        .link-btn {
+            background: none; border: 0; padding: 0; cursor: pointer;
+            color: var(--gold); font-size: 12px; font-weight: 700; text-decoration: underline;
         }
-        button:hover:not(:disabled) { background: var(--primary); transform: translateY(-2px); }
-        button:disabled { background: #333; color: #666; cursor: not-allowed; }
+        .link-btn[hidden] { display: none; }
 
-        .btn-list {
-            width: 100%; margin-top: 10px; padding: 13px; background: transparent;
-            border: 1px solid var(--primary); color: var(--primary); border-radius: 8px;
-            font-weight: 600; font-size: 14px; cursor: pointer; font-family: 'Inter', sans-serif;
-            transition: 0.3s;
+        /* ============ Form ============ */
+        .field { margin-bottom: 15px; }
+        .field > label, .field-label {
+            display: block; margin-bottom: 7px;
+            font-size: 12.5px; font-weight: 700; color: #cfcfda;
         }
-        .btn-list:hover { background: var(--primary); color: #000; }
 
-        .captcha-box { display: flex; justify-content: center; margin-bottom: 15px; min-height: 65px; width: 100%; overflow: hidden; }
-
-        /* Alert Messages */
-        .alert { display: none; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-top: 15px; text-align: center; line-height: 1.5; }
-        .alert.error { display: block; background: rgba(255, 0, 0, 0.1); border: 1px solid rgba(255,0,0,0.3); color: #ff4444; }
-        .alert.success { display: block; background: rgba(0, 255, 0, 0.1); border: 1px solid rgba(0,255,0,0.3); color: #00ff88; }
-
-        /* Popup WhatsApp */
-        .popup-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.4s ease; padding: 20px;
+        .input, .input-group {
+            width: 100%; border-radius: 12px; border: 1px solid var(--border);
+            background: #05050a; transition: border-color .18s ease, box-shadow .18s ease;
         }
-        .popup-overlay.show { opacity: 1; visibility: visible; }
-        .popup-content {
-            background: var(--surface); padding: 35px 25px; border-radius: 20px;
-            border: 1px solid rgba(255, 215, 0, 0.2); text-align: center; max-width: 360px; width: 100%;
-            box-shadow: 0 20px 50px rgba(255, 215, 0, 0.1); transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .popup-overlay.show .popup-content { transform: scale(1); }
-        .popup-content h3 { font-size: 22px; font-weight: 900; margin-bottom: 12px; color: #fff; }
-        .popup-content p { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
-        .btn-wa-large { display: block; background: #25D366; color: #fff; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 15px; margin-bottom: 15px; transition: 0.3s; box-shadow: 0 10px 20px rgba(37, 211, 102, 0.2); }
-        .btn-wa-large:hover { background: #1ebe57; transform: translateY(-3px); }
-        .btn-close-popup { background: none; border: none; color: #888; font-size: 13px; cursor: pointer; text-decoration: underline; font-family: 'Inter', sans-serif; transition: 0.3s; }
-        .btn-close-popup:hover { color: #fff; }
+        .input { padding: 13px 14px; }
+        .input::placeholder { color: #5f5f70; }
 
-        /* Modal List Domain Saya */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 10000; opacity: 0; visibility: hidden; transition: all 0.3s ease; padding: 20px;
+        .input:focus, .input-group:focus-within {
+            outline: none; border-color: rgba(255, 213, 74, 0.65);
+            box-shadow: 0 0 0 3px rgba(255, 213, 74, 0.12);
         }
-        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .input[aria-invalid="true"] { border-color: rgba(255, 107, 107, 0.7); }
+
+        .input-group { display: flex; align-items: stretch; overflow: hidden; }
+        .input-group input {
+            flex: 1 1 auto; min-width: 0; border: 0; background: transparent;
+            padding: 13px 14px; outline: none;
+        }
+        .input-group input::placeholder { color: #5f5f70; }
+        .input-suffix {
+            display: flex; align-items: center; padding: 0 12px;
+            border-left: 1px solid var(--border); background: #0a0a12;
+            color: var(--muted); font-size: 12.5px; font-weight: 600; white-space: nowrap;
+        }
+
+        .help { margin-top: 6px; font-size: 11.5px; color: #6f6f80; }
+        .help.error { color: var(--red); }
+
+        /* Segmented control */
+        .segmented {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+            padding: 4px; border-radius: 12px; border: 1px solid var(--border); background: #05050a;
+        }
+        .seg {
+            padding: 10px 8px; border: 1px solid transparent; border-radius: 9px;
+            background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 700;
+            cursor: pointer; transition: background-color .16s ease, color .16s ease;
+        }
+        .seg:hover { color: var(--text); }
+        .seg[aria-pressed="true"] { background: var(--gold); color: #141005; }
+
+        .captcha-box { display: flex; justify-content: center; min-height: 66px; margin: 4px 0 14px; overflow: hidden; }
+
+        .btn-primary {
+            width: 100%; padding: 15px; border: 0; border-radius: 12px;
+            background: var(--gold); color: #141005;
+            font-size: 15px; font-weight: 800; cursor: pointer;
+            transition: background-color .18s ease, transform .18s ease, opacity .18s ease;
+        }
+        .btn-primary:hover:not(:disabled) { background: #ffdf6d; transform: translateY(-1px); }
+        .btn-primary:active:not(:disabled) { transform: translateY(0); }
+        .btn-primary:disabled { background: #2a2a35; color: #7e7e8f; cursor: not-allowed; }
+
+        .btn-secondary {
+            width: 100%; margin-top: 10px; padding: 12px; border-radius: 12px;
+            border: 1px solid var(--border-strong); background: transparent;
+            color: #d8d8e3; font-size: 13.5px; font-weight: 700; cursor: pointer;
+            transition: border-color .18s ease, color .18s ease, background-color .18s ease;
+        }
+        .btn-secondary:hover { border-color: rgba(255, 213, 74, 0.5); color: var(--gold); background: var(--gold-soft); }
+
+        /* ============ Alerts & result ============ */
+        .alert {
+            display: none; margin-top: 14px; padding: 12px 14px; border-radius: 12px;
+            font-size: 13px; line-height: 1.55; border: 1px solid transparent;
+        }
+        .alert.show { display: block; }
+        .alert.error { background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.35); color: #ffb3b3; }
+        .alert.success { background: rgba(53, 211, 154, 0.1); border-color: rgba(53, 211, 154, 0.35); color: #9cf0cf; }
+
+        .result {
+            display: none; align-items: center; gap: 12px; margin-top: 14px;
+            padding: 12px 14px; border-radius: 12px;
+            background: rgba(53, 211, 154, 0.08); border: 1px solid rgba(53, 211, 154, 0.32);
+        }
+        .result.show { display: flex; }
+        .result-icon {
+            flex: 0 0 auto; width: 28px; height: 28px; border-radius: 999px;
+            display: grid; place-items: center; background: rgba(53, 211, 154, 0.18);
+            color: var(--green); font-weight: 800;
+        }
+        .result-body { min-width: 0; flex: 1 1 auto; }
+        .result-title { font-size: 11.5px; font-weight: 800; color: var(--green); text-transform: uppercase; letter-spacing: 0.05em; }
+        .result-name { font-size: 13.5px; font-weight: 700; word-break: break-all; }
+
+        /* ============ Modal ============ */
+        .modal {
+            position: fixed; inset: 0; z-index: 100;
+            display: flex; align-items: flex-end; justify-content: center;
+            background: rgba(3, 3, 6, 0.78);
+            opacity: 0; visibility: hidden;
+            transition: opacity .2s ease, visibility .2s ease;
+            padding: 0;
+        }
+        .modal.open { opacity: 1; visibility: visible; }
+
         .modal-card {
-            background: var(--surface); border: 1px solid rgba(255,215,0,0.18); border-radius: 18px;
-            width: 100%; max-width: 470px; padding: 22px; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            max-height: 85vh; display: flex; flex-direction: column;
-            transform: scale(0.94); transition: transform 0.3s ease;
+            width: 100%; max-width: 480px;
+            background: var(--surface); border: 1px solid var(--border-strong);
+            border-radius: 20px 20px 0 0; padding: 20px;
+            max-height: 88vh; display: flex; flex-direction: column;
+            transform: translateY(14px); transition: transform .22s ease;
         }
-        .modal-overlay.show .modal-card { transform: scale(1); }
-        .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .modal-head h3 { font-size: 19px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
-        .modal-x { background: none; border: none; color: #888; font-size: 26px; line-height: 1; cursor: pointer; padding: 0 4px; transition: 0.3s; }
-        .modal-x:hover { color: #fff; }
-        .modal-sub { color: var(--text-muted); font-size: 12.5px; margin: 6px 0 14px; line-height: 1.5; }
-        .domain-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 46vh; flex: 1; padding-right: 2px; }
-        .domain-list::-webkit-scrollbar { width: 6px; }
-        .domain-list::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
-        .domain-item { background: #0f0f0f; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
-        .domain-name { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-weight: 700; font-size: 13.5px; color: #fff; word-break: break-all; }
-        .domain-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 11px; color: var(--text-muted); margin-top: 7px; word-break: break-all; }
-        .domain-type { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(255,215,0,0.12); color: var(--primary); border: 1px solid rgba(255,215,0,0.25); }
-        .btn-copy { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: #ccc; font-size: 10px; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-family: 'Inter', sans-serif; flex-shrink: 0; transition: 0.3s; }
-        .btn-copy:hover { color: #000; background: var(--primary); border-color: var(--primary); }
-        .domain-empty, .domain-loading { text-align: center; color: var(--text-muted); font-size: 13px; padding: 26px 10px; line-height: 1.7; }
-        .modal-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
-        .btn-refresh { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: #ddd; border-radius: 8px; padding: 7px 12px; font-size: 12px; cursor: pointer; font-family: 'Inter', sans-serif; transition: 0.3s; }
-        .btn-refresh:hover { border-color: var(--primary); color: var(--primary); }
+        .modal.open .modal-card { transform: translateY(0); }
 
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+        .modal-head h2 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+        .modal-sub { color: var(--muted); font-size: 12.5px; margin: 5px 0 14px; }
+
+        .close-btn {
+            flex: 0 0 auto; width: 32px; height: 32px; border-radius: 10px;
+            border: 1px solid var(--border); background: transparent;
+            color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer;
+        }
+        .close-btn:hover { color: var(--text); border-color: var(--border-strong); }
+
+        /* ============ Domain list ============ */
+        .domain-list {
+            display: flex; flex-direction: column; gap: 8px;
+            overflow-y: auto; max-height: 48vh; flex: 1 1 auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .domain-list::-webkit-scrollbar { width: 6px; }
+        .domain-list::-webkit-scrollbar-thumb { background: #2a2a36; border-radius: 999px; }
+
+        .domain-item {
+            background: var(--surface-2); border: 1px solid var(--border);
+            border-radius: 12px; padding: 12px 13px;
+        }
+        .domain-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .domain-name { font-size: 13.5px; font-weight: 700; word-break: break-all; }
+        .domain-meta {
+            display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+            margin-top: 7px; font-size: 11.5px; color: var(--muted); word-break: break-all;
+        }
+        .tag {
+            font-size: 9.5px; font-weight: 800; letter-spacing: 0.04em;
+            padding: 2px 6px; border-radius: 5px;
+            background: var(--gold-soft); color: var(--gold); border: 1px solid rgba(255, 213, 74, 0.24);
+        }
+
+        .copy-btn {
+            flex: 0 0 auto; border: 1px solid var(--border); background: #0a0a12;
+            color: #cfcfda; font-size: 11px; font-weight: 700;
+            padding: 5px 9px; border-radius: 8px; cursor: pointer;
+            transition: background-color .16s ease, color .16s ease, border-color .16s ease;
+        }
+        .copy-btn:hover { background: var(--gold); color: #141005; border-color: var(--gold); }
+
+        .empty-state, .loading-state {
+            text-align: center; color: var(--muted); font-size: 13px;
+            padding: 26px 14px; line-height: 1.7;
+        }
+
+        .skeleton { display: flex; flex-direction: column; gap: 8px; }
+        .skeleton div { height: 58px; border-radius: 12px; background: #14141d; }
+
+        .modal-foot {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--border);
+            font-size: 12px; color: var(--muted);
+        }
+
+        .btn-small {
+            border: 1px solid var(--border); background: transparent; color: #d8d8e3;
+            font-size: 12px; font-weight: 700; padding: 7px 11px; border-radius: 9px; cursor: pointer;
+        }
+        .btn-small:hover { border-color: rgba(255, 213, 74, 0.5); color: var(--gold); }
+
+        /* ============ Promo popup ============ */
+        .promo-card { text-align: center; padding-bottom: 22px; }
+        .promo-badge {
+            display: inline-block; margin-bottom: 10px; padding: 4px 10px; border-radius: 999px;
+            background: var(--gold-soft); color: var(--gold); border: 1px solid rgba(255, 213, 74, 0.28);
+            font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+        }
+        .promo-card h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 8px; text-wrap: balance; }
+        .promo-card p { color: var(--muted); font-size: 13.5px; margin-bottom: 16px; }
+        .btn-block { width: 100%; padding: 13px; border-radius: 12px; font-size: 14px; }
+        .promo-dismiss { margin-top: 12px; }
+
+        .footnote { text-align: center; color: #5c5c6b; font-size: 11.5px; margin-top: 26px; }
+
+        /* ============ Responsive ============ */
+        @media (min-width: 900px) {
+            main { padding: 56px 0 72px; }
+            .hero { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 48px; }
+            .hero-copy { padding-top: 6px; }
+            .card { padding: 26px; }
+            .modal { align-items: center; padding: 24px; }
+            .modal-card { border-radius: 20px; padding: 24px; }
+            .header-inner { min-height: 68px; }
         }
 
         @media (max-width: 560px) {
-            nav { padding: 16px 16px; }
-            .logo { font-size: 17px; }
-            .btn-join, .btn-domains { padding: 7px 11px; font-size: 12px; }
-            .hero h1 { font-size: 34px; }
-            .card { padding: 22px; }
+            .wrap { padding: 0 16px; }
+            .site-header .btn-wa { display: none; }
+            .brand { font-size: 16.5px; }
+            .card { padding: 18px; border-radius: 16px; }
+            .btn { padding: 8px 12px; font-size: 12.5px; }
+            .input-suffix { padding: 0 9px; font-size: 11.5px; }
+            .features li { font-size: 12px; padding: 6px 10px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
 <body>
 
-    <nav>
-        <div class="logo">Free<span>Subdomain</span></div>
-        <div class="nav-actions">
-            <button type="button" class="btn-domains" id="btnDomains">List Domain Saya</button>
-            <a href="https://whatsapp.com/channel/0029Vb8s0TwAojYmQgDd5z33" target="_blank" class="btn-join">Saluran WA</a>
-        </div>
-    </nav>
-
-    <div class="hero">
-        <h1>Deploy in seconds.</h1>
-        <p>Amankan subdomain impianmu secara instan. Arahkan ke VPS, Vercel, atau GitHub Pages tanpa biaya.</p>
-    </div>
-
-    <div class="card">
-        <!-- Progress Bar IP Limit -->
-        <div class="quota-box">
-            <div class="quota-header">
-                <div>Limit IP Kamu <span class="quota-badge">1 IP Address = 2x Kuota</span></div>
-                <div id="quotaText">Memuat...</div>
-            </div>
-            <div class="progress-track">
-                <div class="progress-fill" id="quotaFill"></div>
-            </div>
-            <div class="quota-footer">
-                <span id="quotaLeft">Mengecek kuota IP kamu...</span>
-                <button type="button" class="quota-retry" id="quotaRetry" hidden>Coba lagi</button>
+    <header class="site-header">
+        <div class="wrap header-inner">
+            <a class="brand" href="/">Free<span>Subdomain</span></a>
+            <div class="header-actions">
+                <button type="button" class="btn btn-ghost" id="btnDomains">
+                    List Domain <span class="count" id="domainsCount">0</span>
+                </button>
+                <a class="btn btn-wa icon-only" href="https://whatsapp.com/channel/0029Vb8s0TwAojYmQgDd5z33" target="_blank" rel="noopener" aria-label="Gabung saluran WhatsApp">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.18 8.18 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.83 2.41a8.19 8.19 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.8-.23-.09-.39-.13-.56.12-.16.25-.64.8-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.48c-.16 0-.43.06-.66.31-.23.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.11-.22-.17-.47-.29Z"/></svg>
+                    <span>Saluran WA</span>
+                </a>
             </div>
         </div>
+    </header>
 
-        <form id="createForm">
-            <div class="form-group row-group">
-                <!-- Maxlength diatur ke 30 agar nama subdomain tidak kepanjangan -->
-                <input type="text" id="subdomain" placeholder="namasubdomain" required autocomplete="off" maxlength="30" pattern="[a-zA-Z0-9-]+" title="Hanya huruf, angka, dan strip (-) yang diizinkan">
-                <!-- Dropdown di-disable untuk UI karena hanya 1 opsi, nilainya tetap publicfree.web.id -->
-                <select id="domain" required>
-                    <option value="publicfree.web.id">.publicfree.web.id</option>
-                </select>
+    <main>
+        <div class="wrap">
+            <div class="hero">
+                <section class="hero-copy">
+                    <span class="eyebrow">GRATIS · CLOUDFLARE DNS</span>
+                    <h1>Subdomain gratis,<br><span class="accent">aktif dalam hitungan detik.</span></h1>
+                    <p class="hero-lead">
+                        Amankan alamat impianmu di <strong>.publicfree.web.id</strong>. Arahkan langsung ke VPS,
+                        Vercel, atau GitHub Pages — tanpa biaya dan tanpa ribet.
+                    </p>
+                    <ul class="features">
+                        <li>A Record</li>
+                        <li>CNAME</li>
+                        <li>DNS instan</li>
+                        <li>2 kuota per IP</li>
+                    </ul>
+                </section>
+
+                <section class="card" aria-labelledby="formTitle">
+                    <h2 class="card-title" id="formTitle">Buat subdomain</h2>
+
+                    <div class="quota">
+                        <div class="quota-top">
+                            <span class="quota-label">Limit IP Kamu</span>
+                            <span class="quota-badge">1 IP = 2x kuota</span>
+                            <span class="quota-value" id="quotaText">Memuat...</span>
+                        </div>
+                        <div class="meter" role="progressbar" aria-label="Kuota terpakai" aria-valuemin="0" aria-valuemax="2" aria-valuenow="0" id="quotaMeter">
+                            <div class="meter-fill" id="quotaFill"></div>
+                        </div>
+                        <div class="quota-bottom">
+                            <span id="quotaLeft">Mengecek kuota IP kamu...</span>
+                            <button type="button" class="link-btn" id="quotaRetry" hidden>Coba lagi</button>
+                        </div>
+                    </div>
+
+                    <form id="createForm" novalidate>
+                        <div class="field">
+                            <label for="subdomain">Nama subdomain</label>
+                            <div class="input-group">
+                                <input id="subdomain" name="subdomain" type="text" placeholder="namamu"
+                                       maxlength="30" autocomplete="off" autocapitalize="none" spellcheck="false" required>
+                                <span class="input-suffix">.publicfree.web.id</span>
+                            </div>
+                            <p class="help" id="subdomainHelp">Huruf kecil, angka, dan strip (-). Maksimal 30 karakter.</p>
+                        </div>
+
+                        <div class="field">
+                            <span class="field-label">Tipe record</span>
+                            <div class="segmented" role="group" aria-label="Tipe record">
+                                <button type="button" class="seg" data-type="A" aria-pressed="true">A · VPS</button>
+                                <button type="button" class="seg" data-type="CNAME" aria-pressed="false">CNAME · Vercel</button>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="target" id="targetLabel">Alamat IPv4</label>
+                            <input class="input" id="target" name="target" type="text" placeholder="103.123.45.67"
+                                   autocomplete="off" autocapitalize="none" spellcheck="false" required>
+                            <p class="help" id="targetHelp">Contoh: 103.123.45.67</p>
+                        </div>
+
+                        <div class="captcha-box">
+                            <!-- Ganti dengan site key Turnstile milikmu -->
+                            <div class="cf-turnstile" data-sitekey="0x4AAAAAAFsfB6KZrDAddSnQ" data-theme="dark"></div>
+                        </div>
+
+                        <button type="submit" class="btn-primary" id="btnSubmit">Buat Subdomain</button>
+                    </form>
+
+                    <button type="button" class="btn-secondary" id="btnDomainsCard">Lihat List Domain Saya</button>
+
+                    <div class="alert" id="alertBox" role="status" aria-live="polite"></div>
+
+                    <div class="result" id="resultBox">
+                        <div class="result-icon" aria-hidden="true">✓</div>
+                        <div class="result-body">
+                            <div class="result-title">Subdomain aktif</div>
+                            <div class="result-name" id="resultName"></div>
+                        </div>
+                        <button type="button" class="copy-btn" id="resultCopy">Salin</button>
+                    </div>
+                </section>
             </div>
 
-            <div class="form-group">
-                <select id="recordType" required>
-                    <option value="" disabled selected hidden>Tipe Resolusi Target...</option>
-                    <option value="A">A Record (IPv4 Address / VPS)</option>
-                    <option value="CNAME">CNAME (Domain Alias / Vercel)</option>
-                </select>
-            </div>
+            <p class="footnote">Dibuat dengan Cloudflare API · Kuota dihitung per IP Address</p>
+        </div>
+    </main>
 
-            <div class="form-group">
-                <input type="text" id="target" placeholder="IP Address atau Target CNAME" required autocomplete="off">
-            </div>
-
-            <div class="captcha-box">
-                <!-- GANTI DENGAN SITE KEY KAMU. data-theme="dark" ditambahkan agar menyatu dengan background -->
-                <div class="cf-turnstile" data-sitekey="0x4AAAAAAFsfB6KZrDAddSnQ" data-theme="dark"></div>
-            </div>
-
-            <button type="submit" id="btnSubmit">Create Record</button>
-        </form>
-
-        <button type="button" class="btn-list" id="btnDomainsCard">Lihat List Domain Saya</button>
-
-        <div id="alertBox" class="alert"></div>
-    </div>
-
-    <!-- MODAL LIST DOMAIN SAYA -->
-    <div class="modal-overlay" id="domainsModal">
-        <div class="modal-card">
+    <!-- ===== Modal: List Domain Saya ===== -->
+    <div class="modal" id="domainsModal" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="domainsTitle">
             <div class="modal-head">
-                <h3>Domain Saya</h3>
-                <button type="button" class="modal-x" id="domainsClose" aria-label="Tutup">&times;</button>
+                <div>
+                    <h2 id="domainsTitle">Domain Saya</h2>
+                    <p class="modal-sub">Semua subdomain yang dibuat dari IP Address ini.</p>
+                </div>
+                <button type="button" class="close-btn" data-close aria-label="Tutup">&times;</button>
             </div>
-            <p class="modal-sub">Seluruh subdomain yang dibuat dari IP Address ini. Maksimal 2 subdomain per IP Address.</p>
+
             <div class="domain-list" id="domainList"></div>
+
             <div class="modal-foot">
                 <span id="domainsQuota">—</span>
-                <button type="button" class="btn-refresh" id="domainsRefresh">Muat ulang</button>
+                <button type="button" class="btn-small" id="domainsRefresh">Muat ulang</button>
             </div>
         </div>
     </div>
 
-    <!-- POPUP NOTIFICATION WHATSAPP (Muncul di detik ke-15) -->
-    <div class="popup-overlay" id="waPopup">
-        <div class="popup-content">
-            <h3>📢 Info Penting!</h3>
-            <p>Jangan sampai ketinggalan update kuota & domain gratis terbaru. Wajib gabung saluran WhatsApp owner sekarang!</p>
-            <a href="https://whatsapp.com/channel/0029Vb8s0TwAojYmQgDd5z33" target="_blank" class="btn-wa-large" onclick="closePopup()">Gabung Saluran Sekarang</a>
-            <button class="btn-close-popup" onclick="closePopup()">Nanti saja</button>
+    <!-- ===== Modal: Promo WhatsApp ===== -->
+    <div class="modal" id="promoModal" aria-hidden="true">
+        <div class="modal-card promo-card" role="dialog" aria-modal="true" aria-labelledby="promoTitle">
+            <span class="promo-badge">INFO PENTING</span>
+            <h2 id="promoTitle">Update kuota &amp; domain gratis</h2>
+            <p>Gabung saluran WhatsApp supaya tidak ketinggalan info kuota tambahan, domain baru, dan maintenance server.</p>
+            <a class="btn btn-wa btn-block" href="https://whatsapp.com/channel/0029Vb8s0TwAojYmQgDd5z33" target="_blank" rel="noopener">Gabung Saluran WhatsApp</a>
+            <button type="button" class="link-btn promo-dismiss" data-close>Nanti saja</button>
         </div>
     </div>
 
-    <!-- SCRIPT KEAMANAN FRONTEND -->
     <script>
-        // Blokir Klik Kanan (Context Menu)
-        document.addEventListener('contextmenu', event => event.preventDefault());
+        (function () {
+            'use strict';
 
-        // Blokir Shortcut Developer Tools (F12, Ctrl+Shift+I, dll)
-        document.onkeydown = function(e) {
-            if (e.keyCode === 123 ||
-               (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) ||
-               (e.ctrlKey && e.keyCode === 85)) {
+            var PUBLIC_DOMAIN = 'publicfree.web.id';
+            var PROMO_FIRST_DELAY = 900;      // muncul saat pertama kali halaman dibuka
+            var PROMO_REPEAT_DELAY = 20000;   // lalu berulang tiap ~20 detik
+            var PROMO_DEFER_DELAY = 4000;
+
+            var els = {
+                form: document.getElementById('createForm'),
+                subdomain: document.getElementById('subdomain'),
+                subdomainHelp: document.getElementById('subdomainHelp'),
+                target: document.getElementById('target'),
+                targetLabel: document.getElementById('targetLabel'),
+                targetHelp: document.getElementById('targetHelp'),
+                btnSubmit: document.getElementById('btnSubmit'),
+                alertBox: document.getElementById('alertBox'),
+                resultBox: document.getElementById('resultBox'),
+                resultName: document.getElementById('resultName'),
+                resultCopy: document.getElementById('resultCopy'),
+                quotaText: document.getElementById('quotaText'),
+                quotaFill: document.getElementById('quotaFill'),
+                quotaMeter: document.getElementById('quotaMeter'),
+                quotaLeft: document.getElementById('quotaLeft'),
+                quotaRetry: document.getElementById('quotaRetry'),
+                btnDomains: document.getElementById('btnDomains'),
+                btnDomainsCard: document.getElementById('btnDomainsCard'),
+                domainsCount: document.getElementById('domainsCount'),
+                domainsModal: document.getElementById('domainsModal'),
+                domainList: document.getElementById('domainList'),
+                domainsQuota: document.getElementById('domainsQuota'),
+                domainsRefresh: document.getElementById('domainsRefresh'),
+                promoModal: document.getElementById('promoModal'),
+                segs: Array.prototype.slice.call(document.querySelectorAll('.seg'))
+            };
+
+            var state = {
+                used: 0,
+                limit: 2,
+                subdomains: [],
+                statusLoaded: false,
+                recordType: 'A',
+                submitting: false,
+                lastActivity: 0
+            };
+
+            var promoTimer = null;
+            var promoDueAt = 0;
+            var lastFocused = null;
+
+            /* ---------- Utilitas ---------- */
+            function showAlert(kind, message) {
+                els.alertBox.className = 'alert show ' + kind;
+                els.alertBox.textContent = message;
+            }
+
+            function hideAlert() {
+                els.alertBox.className = 'alert';
+                els.alertBox.textContent = '';
+            }
+
+            function showResult(record) {
+                if (!record || !record.name) return;
+                els.resultName.textContent = record.name;
+                els.resultBox.classList.add('show');
+                els.resultCopy.textContent = 'Salin';
+            }
+
+            function hideResult() {
+                els.resultBox.classList.remove('show');
+            }
+
+            function setHelp(el, text, isError) {
+                el.textContent = text;
+                el.className = 'help' + (isError ? ' error' : '');
+            }
+
+            async function apiFetch(path, options) {
+                var opts = options || {};
+                var controller = new AbortController();
+                var timer = setTimeout(function () { controller.abort(); }, 25000);
+
+                try {
+                    var res = await fetch(path, {
+                        method: opts.method || 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: opts.body,
+                        signal: controller.signal,
+                        cache: 'no-store'
+                    });
+
+                    var raw = await res.text();
+                    var data = null;
+                    if (raw) {
+                        try { data = JSON.parse(raw); } catch (e) { data = null; }
+                    }
+                    if (!data || typeof data !== 'object') {
+                        throw new Error(res.ok ? 'Respons server tidak valid.' : 'Server mengirim error ' + res.status + '.');
+                    }
+                    if (!res.ok || data.success === false) {
+                        throw new Error(data.message || 'Permintaan gagal (' + res.status + ').');
+                    }
+                    return data;
+                } catch (err) {
+                    if (err.name === 'AbortError') throw new Error('Server tidak merespons (timeout). Coba lagi.');
+                    if (err instanceof TypeError) throw new Error('Tidak bisa menghubungi server. Cek koneksi internetmu.');
+                    throw err;
+                } finally {
+                    clearTimeout(timer);
+                }
+            }
+
+            /* ---------- Kuota ---------- */
+            function applyQuota(data) {
+                state.limit = Number(data.limit) > 0 ? Number(data.limit) : 2;
+                state.used = Math.max(0, Number(data.used) || 0);
+                state.subdomains = Array.isArray(data.subdomains) ? data.subdomains : [];
+                state.statusLoaded = true;
+            }
+
+            function renderQuota() {
+                var used = state.used;
+                var limit = state.limit;
+                var pct = limit > 0 ? Math.min((used / limit) * 100, 100) : 0;
+
+                els.quotaText.textContent = used + ' / ' + limit;
+                els.quotaFill.style.width = pct + '%';
+                els.quotaFill.classList.toggle('full', used >= limit);
+
+                els.quotaMeter.setAttribute('aria-valuemax', String(limit));
+                els.quotaMeter.setAttribute('aria-valuenow', String(Math.min(used, limit)));
+
+                els.quotaLeft.textContent = used >= limit
+                    ? 'Kuota habis untuk IP Address ini.'
+                    : 'Sisa ' + (limit - used) + ' dari ' + limit + ' kuota untuk IP Address ini.';
+
+                els.domainsCount.textContent = String(state.subdomains.length);
+                updateSubmitState();
+            }
+
+            function updateSubmitState() {
+                if (state.submitting) return;
+                if (state.statusLoaded && state.used >= state.limit) {
+                    els.btnSubmit.disabled = true;
+                    els.btnSubmit.textContent = 'Limit Kuota Tercapai';
+                } else {
+                    els.btnSubmit.disabled = false;
+                    els.btnSubmit.textContent = 'Buat Subdomain';
+                }
+            }
+
+            async function loadStatus() {
+                els.quotaText.textContent = 'Memuat...';
+                els.quotaLeft.textContent = 'Mengecek kuota IP kamu...';
+                els.quotaRetry.hidden = true;
+
+                try {
+                    var data = await apiFetch('/api/status');
+                    applyQuota(data);
+                    renderQuota();
+                    if (state.used >= state.limit) {
+                        showAlert('error', 'Kuota kamu sudah habis untuk IP Address ini. 1 IP Address hanya mendapat ' + state.limit + 'x kuota subdomain.');
+                    }
+                } catch (err) {
+                    state.statusLoaded = false;
+                    els.quotaText.textContent = 'Gagal dimuat';
+                    els.quotaLeft.textContent = err.message;
+                    els.quotaRetry.hidden = false;
+                    els.btnSubmit.disabled = false;
+                    els.btnSubmit.textContent = 'Buat Subdomain';
+                }
+            }
+
+            /* ---------- Daftar domain ---------- */
+            function renderDomains(items) {
+                els.domainList.textContent = '';
+
+                if (!items.length) {
+                    var empty = document.createElement('div');
+                    empty.className = 'empty-state';
+                    empty.textContent = 'Belum ada subdomain dari IP Address ini. Buat yang pertama di atas.';
+                    els.domainList.appendChild(empty);
+                    return;
+                }
+
+                var frag = document.createDocumentFragment();
+
+                items.forEach(function (item) {
+                    var row = document.createElement('div');
+                    row.className = 'domain-item';
+
+                    var top = document.createElement('div');
+                    top.className = 'domain-row';
+
+                    var name = document.createElement('div');
+                    name.className = 'domain-name';
+                    name.textContent = item.name;
+
+                    var copy = document.createElement('button');
+                    copy.type = 'button';
+                    copy.className = 'copy-btn';
+                    copy.textContent = 'Salin';
+                    copy.addEventListener('click', function () { copyText(item.name, copy); });
+
+                    top.appendChild(name);
+                    top.appendChild(copy);
+
+                    var meta = document.createElement('div');
+                    meta.className = 'domain-meta';
+
+                    var tag = document.createElement('span');
+                    tag.className = 'tag';
+                    tag.textContent = item.type || 'A';
+                    meta.appendChild(tag);
+
+                    var details = [];
+                    if (item.target) details.push(item.target);
+                    if (item.createdAt) {
+                        var d = new Date(item.createdAt);
+                        if (!isNaN(d.getTime())) {
+                            details.push(d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }));
+                        }
+                    }
+                    if (details.length) {
+                        var detail = document.createElement('span');
+                        detail.textContent = details.join(' · ');
+                        meta.appendChild(detail);
+                    }
+
+                    row.appendChild(top);
+                    row.appendChild(meta);
+                    frag.appendChild(row);
+                });
+
+                els.domainList.appendChild(frag);
+            }
+
+            function renderSkeleton() {
+                els.domainList.textContent = '';
+                var wrap = document.createElement('div');
+                wrap.className = 'skeleton';
+                for (var i = 0; i < 2; i++) wrap.appendChild(document.createElement('div'));
+                els.domainList.appendChild(wrap);
+            }
+
+            async function loadDomains() {
+                renderSkeleton();
+                els.domainsQuota.textContent = 'Memuat...';
+
+                try {
+                    var data = await apiFetch('/api/subdomains');
+                    applyQuota(data);
+                    renderQuota();
+                    renderDomains(state.subdomains);
+                    els.domainsQuota.textContent = state.used + ' / ' + state.limit + ' kuota terpakai';
+                } catch (err) {
+                    els.domainList.textContent = '';
+                    var box = document.createElement('div');
+                    box.className = 'empty-state';
+                    box.textContent = 'Gagal memuat daftar domain. ' + err.message;
+                    var retry = document.createElement('button');
+                    retry.type = 'button';
+                    retry.className = 'btn-small';
+                    retry.style.marginTop = '12px';
+                    retry.textContent = 'Coba lagi';
+                    retry.addEventListener('click', loadDomains);
+                    box.appendChild(document.createElement('br'));
+                    box.appendChild(retry);
+                    els.domainList.appendChild(box);
+                    els.domainsQuota.textContent = '—';
+                }
+            }
+
+            function copyText(text, button) {
+                var done = function (ok) {
+                    button.textContent = ok ? 'Tersalin' : 'Gagal';
+                    setTimeout(function () { button.textContent = 'Salin'; }, 1500);
+                };
+
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(function () { done(true); }, function () { fallback(); });
+                } else {
+                    fallback();
+                }
+
+                function fallback() {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.setAttribute('readonly', '');
+                    ta.style.position = 'fixed';
+                    ta.style.top = '-1000px';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    var ok = false;
+                    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+                    document.body.removeChild(ta);
+                    done(ok);
+                }
+            }
+
+            /* ---------- Modal ---------- */
+            function openModal(el) {
+                lastFocused = document.activeElement;
+                el.classList.add('open');
+                el.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+                var focusable = el.querySelector('button, a, input');
+                if (focusable) focusable.focus({ preventScroll: true });
+            }
+
+            function closeModal(el) {
+                el.classList.remove('open');
+                el.setAttribute('aria-hidden', 'true');
+                if (!document.querySelector('.modal.open')) {
+                    document.body.style.overflow = '';
+                }
+                if (lastFocused && typeof lastFocused.focus === 'function') {
+                    lastFocused.focus({ preventScroll: true });
+                }
+            }
+
+            function openDomains() {
+                openModal(els.domainsModal);
+                if (state.statusLoaded) {
+                    renderDomains(state.subdomains);
+                    els.domainsQuota.textContent = state.used + ' / ' + state.limit + ' kuota terpakai';
+                }
+                loadDomains();
+            }
+
+            /* ---------- Promo ---------- */
+            function promoBlocked() {
+                if (document.hidden) return true;
+                if (els.domainsModal.classList.contains('open')) return true;
+                if (els.promoModal.classList.contains('open')) return true;
+                if (Date.now() - state.lastActivity < 6000) return true;
                 return false;
             }
-        };
-    </script>
 
-    <!-- SCRIPT LOGIKA UTAMA -->
-    <script>
-        // Timer Popup WA (15.000 ms = 15 detik)
-        setTimeout(() => {
-            document.getElementById('waPopup').classList.add('show');
-        }, 15000);
-
-        function closePopup() {
-            document.getElementById('waPopup').classList.remove('show');
-        }
-
-        const els = {
-            form: document.getElementById('createForm'),
-            subdomain: document.getElementById('subdomain'),
-            domain: document.getElementById('domain'),
-            recordType: document.getElementById('recordType'),
-            target: document.getElementById('target'),
-            btnSubmit: document.getElementById('btnSubmit'),
-            btnDomains: document.getElementById('btnDomains'),
-            btnDomainsCard: document.getElementById('btnDomainsCard'),
-            alertBox: document.getElementById('alertBox'),
-            quotaText: document.getElementById('quotaText'),
-            quotaFill: document.getElementById('quotaFill'),
-            quotaLeft: document.getElementById('quotaLeft'),
-            quotaRetry: document.getElementById('quotaRetry'),
-            modal: document.getElementById('domainsModal'),
-            domainsClose: document.getElementById('domainsClose'),
-            domainsRefresh: document.getElementById('domainsRefresh'),
-            domainsQuota: document.getElementById('domainsQuota'),
-            domainList: document.getElementById('domainList')
-        };
-
-        const state = { used: 0, limit: 2, subdomains: [], statusLoaded: false };
-        let submitting = false;
-
-        // ---------- Helper ----------
-        function showAlert(kind, message) {
-            els.alertBox.className = 'alert ' + kind;
-            els.alertBox.textContent = message;
-        }
-
-        function hideAlert() {
-            els.alertBox.className = 'alert';
-            els.alertBox.textContent = '';
-        }
-
-        // fetch + penanganan error yang tidak pernah menggantung tanpa pesan
-        async function apiFetch(pathname, options) {
-            const opts = options || {};
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 25000);
-            try {
-                const res = await fetch(pathname, {
-                    ...opts,
-                    signal: controller.signal,
-                    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) }
-                });
-                const raw = await res.text();
-                let data = null;
-                if (raw) {
-                    try { data = JSON.parse(raw); } catch (e) { data = null; }
-                }
-                if (!data || typeof data !== 'object') {
-                    throw new Error(res.ok
-                        ? 'Respons server tidak valid (bukan JSON).'
-                        : 'Server mengirim error ' + res.status + '.');
-                }
-                if (!res.ok || data.success === false) {
-                    throw new Error(data.message || ('Permintaan gagal dengan status ' + res.status + '.'));
-                }
-                return data;
-            } catch (err) {
-                if (err.name === 'AbortError') throw new Error('Server tidak merespons (timeout). Coba lagi.');
-                if (err instanceof TypeError) throw new Error('Tidak bisa menghubungi server. Cek koneksi internetmu.');
-                throw err;
-            } finally {
-                clearTimeout(timer);
-            }
-        }
-
-        function applyQuotaData(data) {
-            state.limit = Number(data.limit) > 0 ? Number(data.limit) : 2;
-            state.used = Math.max(0, Number(data.used) || 0);
-            state.subdomains = Array.isArray(data.subdomains) ? data.subdomains : [];
-            state.statusLoaded = true;
-        }
-
-        function renderQuota() {
-            const { used, limit } = state;
-            els.quotaText.innerText = used + ' / ' + limit;
-            els.quotaFill.style.width = Math.min((used / limit) * 100, 100) + '%';
-            els.quotaFill.classList.toggle('full', used >= limit);
-
-            if (used >= limit) {
-                els.quotaLeft.innerText = 'Kuota habis untuk IP Address ini.';
-            } else {
-                els.quotaLeft.innerText = 'Sisa ' + (limit - used) + ' dari ' + limit + ' kuota untuk IP Address ini.';
-            }
-
-            els.btnDomains.innerText = state.statusLoaded
-                ? 'List Domain Saya (' + state.subdomains.length + ')'
-                : 'List Domain Saya';
-
-            updateSubmitState();
-        }
-
-        function updateSubmitState() {
-            if (submitting) return;
-            if (state.statusLoaded && state.used >= state.limit) {
-                els.btnSubmit.disabled = true;
-                els.btnSubmit.innerText = 'Limit Kuota Tercapai';
-            } else {
-                els.btnSubmit.disabled = false;
-                els.btnSubmit.innerText = 'Create Record';
-            }
-        }
-
-        // ---------- Kuota ----------
-        async function loadStatus() {
-            els.quotaText.innerText = 'Memuat...';
-            els.quotaLeft.innerText = 'Mengecek kuota IP kamu...';
-            els.quotaRetry.hidden = true;
-            els.quotaFill.style.width = '0%';
-            els.quotaFill.classList.remove('full');
-
-            try {
-                const data = await apiFetch('/api/status');
-                applyQuotaData(data);
-                renderQuota();
-                if (state.used >= state.limit) {
-                    showAlert('error', 'Kuota kamu sudah habis untuk IP Address ini. 1 IP Address hanya mendapat ' + state.limit + 'x kuota subdomain.');
-                }
-            } catch (err) {
-                state.statusLoaded = false;
-                els.quotaText.innerText = 'Gagal dimuat';
-                els.quotaLeft.innerText = err.message;
-                els.quotaRetry.hidden = false;
-                els.btnSubmit.disabled = false;
-                els.btnSubmit.innerText = 'Create Record';
-            }
-        }
-
-        // ---------- List Domain Saya ----------
-        function renderDomainList(items) {
-            els.domainList.textContent = '';
-
-            if (!items.length) {
-                const empty = document.createElement('div');
-                empty.className = 'domain-empty';
-                empty.innerText = 'Belum ada subdomain yang kamu buat dari IP Address ini.';
-                els.domainList.appendChild(empty);
-                return;
-            }
-
-            items.forEach(function(item) {
-                const row = document.createElement('div');
-                row.className = 'domain-item';
-
-                const top = document.createElement('div');
-                top.className = 'domain-name';
-                const name = document.createElement('span');
-                name.innerText = item.name;
-                const copy = document.createElement('button');
-                copy.type = 'button';
-                copy.className = 'btn-copy';
-                copy.innerText = 'Salin';
-                copy.addEventListener('click', function() { copyText(item.name, copy); });
-                top.appendChild(name);
-                top.appendChild(copy);
-
-                const meta = document.createElement('div');
-                meta.className = 'domain-meta';
-                const typeTag = document.createElement('span');
-                typeTag.className = 'domain-type';
-                typeTag.innerText = item.type || 'A';
-                meta.appendChild(typeTag);
-
-                const details = [];
-                if (item.target) details.push('→ ' + item.target);
-                if (item.createdAt) {
-                    const date = new Date(item.createdAt);
-                    if (!isNaN(date.getTime())) {
-                        details.push(date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }));
+            function schedulePromo(delay) {
+                clearTimeout(promoTimer);
+                promoDueAt = Date.now() + delay;
+                promoTimer = setTimeout(function () {
+                    if (document.hidden) {
+                        promoTimer = null;
+                        return;
                     }
-                }
-                if (details.length) {
-                    const detail = document.createElement('span');
-                    detail.innerText = details.join(' • ');
-                    meta.appendChild(detail);
-                }
-
-                row.appendChild(top);
-                row.appendChild(meta);
-                els.domainList.appendChild(row);
-            });
-        }
-
-        async function loadDomains() {
-            els.domainList.textContent = '';
-            const loading = document.createElement('div');
-            loading.className = 'domain-loading';
-            loading.innerText = 'Memuat daftar subdomain...';
-            els.domainList.appendChild(loading);
-            els.domainsQuota.innerText = 'Memuat...';
-
-            try {
-                const data = await apiFetch('/api/subdomains');
-                applyQuotaData(data);
-                renderQuota();
-                renderDomainList(state.subdomains);
-                els.domainsQuota.innerText = state.used + ' / ' + state.limit + ' kuota terpakai';
-            } catch (err) {
-                els.domainList.textContent = '';
-                const box = document.createElement('div');
-                box.className = 'domain-empty';
-                box.innerText = 'Gagal memuat daftar subdomain. ' + err.message;
-                const retry = document.createElement('button');
-                retry.type = 'button';
-                retry.className = 'btn-refresh';
-                retry.style.marginTop = '12px';
-                retry.innerText = 'Coba lagi';
-                retry.addEventListener('click', loadDomains);
-                box.appendChild(document.createElement('br'));
-                box.appendChild(retry);
-                els.domainList.appendChild(box);
-                els.domainsQuota.innerText = '—';
-            }
-        }
-
-        function openDomains() {
-            els.modal.classList.add('show');
-            if (state.statusLoaded) {
-                renderDomainList(state.subdomains);
-                els.domainsQuota.innerText = state.used + ' / ' + state.limit + ' kuota terpakai';
-            }
-            loadDomains();
-        }
-
-        function closeDomains() {
-            els.modal.classList.remove('show');
-        }
-
-        async function copyText(text, button) {
-            let ok = false;
-            try {
-                if (navigator.clipboard && window.isSecureContext) {
-                    await navigator.clipboard.writeText(text);
-                    ok = true;
-                }
-            } catch (e) { ok = false; }
-
-            if (!ok) {
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                ta.style.position = 'fixed';
-                ta.style.top = '-1000px';
-                document.body.appendChild(ta);
-                ta.select();
-                try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
-                document.body.removeChild(ta);
+                    if (promoBlocked()) {
+                        schedulePromo(PROMO_DEFER_DELAY);
+                        return;
+                    }
+                    openModal(els.promoModal);
+                }, delay);
             }
 
-            button.innerText = ok ? 'Tersalin' : 'Gagal';
-            setTimeout(function() { button.innerText = 'Salin'; }, 1600);
-        }
-
-        // ---------- Turnstile ----------
-        function getTurnstileToken() {
-            try {
-                if (typeof turnstile !== 'undefined' && typeof turnstile.getResponse === 'function') {
-                    const token = turnstile.getResponse();
-                    if (token) return token;
-                }
-            } catch (e) { /* widget belum siap */ }
-            const input = document.querySelector('[name="cf-turnstile-response"]');
-            return input ? input.value : '';
-        }
-
-        function resetTurnstile() {
-            try {
-                if (typeof turnstile !== 'undefined' && typeof turnstile.reset === 'function') turnstile.reset();
-            } catch (e) { /* abaikan */ }
-        }
-
-        // ---------- Event ----------
-        els.btnDomains.addEventListener('click', openDomains);
-        els.btnDomainsCard.addEventListener('click', openDomains);
-        els.domainsClose.addEventListener('click', closeDomains);
-        els.domainsRefresh.addEventListener('click', loadDomains);
-        els.quotaRetry.addEventListener('click', loadStatus);
-        els.modal.addEventListener('click', function(e) { if (e.target === els.modal) closeDomains(); });
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && els.modal.classList.contains('show')) closeDomains();
-        });
-
-        els.recordType.addEventListener('change', function() {
-            els.target.placeholder = els.recordType.value === 'CNAME'
-                ? 'Contoh: cname.vercel-dns.com'
-                : 'Contoh: 103.123.45.67';
-        });
-
-        els.form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            if (submitting) return;
-
-            const cleanSubdomain = els.subdomain.value.toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
-            const recordType = els.recordType.value;
-            const target = els.target.value.trim();
-
-            if (!/^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/.test(cleanSubdomain)) {
-                showAlert('error', 'Nama subdomain tidak valid. Gunakan huruf, angka, atau strip (-), maksimal 30 karakter, dan tidak diawali/diakhiri strip.');
-                return;
-            }
-            if (!recordType) {
-                showAlert('error', 'Pilih dulu tipe record (A atau CNAME).');
-                return;
-            }
-            if (recordType === 'A' && !/^(\d{1,3}\.){3}\d{1,3}$/.test(target)) {
-                showAlert('error', 'Target A Record harus alamat IPv4 yang valid, contoh: 103.123.45.67');
-                return;
-            }
-            if (recordType === 'CNAME' && !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(target)) {
-                showAlert('error', 'Target CNAME harus berupa domain yang valid, contoh: cname.vercel-dns.com');
-                return;
+            /* ---------- Turnstile ---------- */
+            function getTurnstileToken() {
+                try {
+                    if (typeof turnstile !== 'undefined' && typeof turnstile.getResponse === 'function') {
+                        var token = turnstile.getResponse();
+                        if (token) return token;
+                    }
+                } catch (e) { /* widget belum siap */ }
+                var input = document.querySelector('[name="cf-turnstile-response"]');
+                return input ? input.value : '';
             }
 
-            const cfToken = getTurnstileToken();
-            if (!cfToken) {
-                showAlert('error', 'Verifikasi captcha belum diselesaikan. Tunggu widget captcha muncul lalu centang.');
-                return;
+            function resetTurnstile() {
+                try {
+                    if (typeof turnstile !== 'undefined' && typeof turnstile.reset === 'function') turnstile.reset();
+                } catch (e) { /* abaikan */ }
             }
 
-            submitting = true;
-            els.btnSubmit.innerText = 'Memproses...';
-            els.btnSubmit.disabled = true;
-            hideAlert();
+            /* ---------- Validasi ---------- */
+            var SUBDOMAIN_RE = /^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/;
+            var IPV4_RE = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
+            var HOSTNAME_RE = /^(?=.{1,253}$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i;
 
-            try {
-                const result = await apiFetch('/api/create', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        subdomain: cleanSubdomain,
-                        domain: els.domain.value,
-                        recordType: recordType,
-                        target: target,
-                        cfToken: cfToken
-                    })
+            function normalizeSub(value) {
+                return String(value || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+            }
+
+            /* ---------- Event ---------- */
+            els.segs.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    state.recordType = btn.dataset.type;
+                    els.segs.forEach(function (other) {
+                        other.setAttribute('aria-pressed', other === btn ? 'true' : 'false');
+                    });
+
+                    if (state.recordType === 'A') {
+                        els.targetLabel.textContent = 'Alamat IPv4';
+                        els.target.placeholder = '103.123.45.67';
+                        setHelp(els.targetHelp, 'Contoh: 103.123.45.67');
+                    } else {
+                        els.targetLabel.textContent = 'Target CNAME';
+                        els.target.placeholder = 'cname.vercel-dns.com';
+                        setHelp(els.targetHelp, 'Contoh: cname.vercel-dns.com atau domain lain tanpa http://');
+                    }
                 });
+            });
 
-                showAlert('success', 'Berhasil: ' + result.message);
-                els.form.reset();
-                els.target.placeholder = 'IP Address atau Target CNAME';
+            els.btnDomains.addEventListener('click', openDomains);
+            els.btnDomainsCard.addEventListener('click', openDomains);
+            els.domainsRefresh.addEventListener('click', loadDomains);
+            els.quotaRetry.addEventListener('click', loadStatus);
 
-                if (Number.isFinite(Number(result.used)) && Number.isFinite(Number(result.limit))) {
-                    state.used = Number(result.used);
-                    state.limit = Number(result.limit);
+            els.resultCopy.addEventListener('click', function () {
+                copyText(els.resultName.textContent, els.resultCopy);
+            });
+
+            document.querySelectorAll('.modal').forEach(function (modal) {
+                modal.addEventListener('click', function (e) {
+                    var target = e.target;
+                    if (target === modal || target.closest('[data-close]')) {
+                        closeModal(modal);
+                        if (modal === els.promoModal) schedulePromo(PROMO_REPEAT_DELAY);
+                    }
+                });
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key !== 'Escape') return;
+                var open = document.querySelector('.modal.open');
+                if (!open) return;
+                closeModal(open);
+                if (open === els.promoModal) schedulePromo(PROMO_REPEAT_DELAY);
+            });
+
+            els.form.addEventListener('input', function () { state.lastActivity = Date.now(); });
+            els.form.addEventListener('click', function () { state.lastActivity = Date.now(); });
+
+            els.subdomain.addEventListener('input', function () {
+                if (els.subdomain.getAttribute('aria-invalid') === 'true') {
+                    els.subdomain.removeAttribute('aria-invalid');
+                    setHelp(els.subdomainHelp, 'Huruf kecil, angka, dan strip (-). Maksimal 30 karakter.');
                 }
-                if (result.subdomain && result.subdomain.name) {
-                    state.subdomains = [result.subdomain].concat(state.subdomains);
-                }
-                state.statusLoaded = true;
-            } catch (err) {
-                showAlert('error', 'Gagal: ' + err.message);
-            } finally {
-                submitting = false;
-                resetTurnstile();
-                renderQuota();
-                loadStatus();
-            }
-        });
+            });
 
-        // Eksekusi cek kuota saat web pertama kali dibuka
-        loadStatus();
+            els.target.addEventListener('input', function () {
+                if (els.target.getAttribute('aria-invalid') === 'true') {
+                    els.target.removeAttribute('aria-invalid');
+                    setHelp(els.targetHelp, state.recordType === 'A' ? 'Contoh: 103.123.45.67' : 'Contoh: cname.vercel-dns.com');
+                }
+            });
+
+            els.form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                if (state.submitting) return;
+
+                hideAlert();
+                hideResult();
+
+                var name = normalizeSub(els.subdomain.value);
+                var target = els.target.value.trim();
+                var type = state.recordType;
+
+                if (!SUBDOMAIN_RE.test(name)) {
+                    els.subdomain.setAttribute('aria-invalid', 'true');
+                    setHelp(els.subdomainHelp, 'Nama tidak valid. Huruf kecil/angka/strip, maks 30 karakter, tidak diawali atau diakhiri strip.', true);
+                    els.subdomain.focus();
+                    return;
+                }
+
+                if (type === 'A' && !IPV4_RE.test(target)) {
+                    els.target.setAttribute('aria-invalid', 'true');
+                    setHelp(els.targetHelp, 'Masukkan alamat IPv4 yang valid, contoh 103.123.45.67.', true);
+                    els.target.focus();
+                    return;
+                }
+
+                if (type === 'CNAME' && !HOSTNAME_RE.test(target)) {
+                    els.target.setAttribute('aria-invalid', 'true');
+                    setHelp(els.targetHelp, 'Masukkan domain CNAME tanpa http://, contoh cname.vercel-dns.com.', true);
+                    els.target.focus();
+                    return;
+                }
+
+                var token = getTurnstileToken();
+                if (!token) {
+                    showAlert('error', 'Verifikasi captcha belum selesai. Tunggu widget captcha muncul, lalu centang.');
+                    return;
+                }
+
+                state.submitting = true;
+                els.btnSubmit.disabled = true;
+                els.btnSubmit.textContent = 'Memproses...';
+
+                try {
+                    var result = await apiFetch('/api/create', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            subdomain: name,
+                            domain: PUBLIC_DOMAIN,
+                            recordType: type,
+                            target: target,
+                            cfToken: token
+                        })
+                    });
+
+                    showResult(result.subdomain);
+                    showAlert('success', result.message);
+
+                    if (Number.isFinite(Number(result.used))) state.used = Number(result.used);
+                    if (Number.isFinite(Number(result.limit))) state.limit = Number(result.limit);
+                    if (result.subdomain && result.subdomain.name) {
+                        state.subdomains = [result.subdomain].concat(state.subdomains);
+                    }
+                    state.statusLoaded = true;
+
+                    els.form.reset();
+                    setHelp(els.subdomainHelp, 'Huruf kecil, angka, dan strip (-). Maksimal 30 karakter.');
+                    setHelp(els.targetHelp, type === 'A' ? 'Contoh: 103.123.45.67' : 'Contoh: cname.vercel-dns.com');
+                } catch (err) {
+                    showAlert('error', err.message);
+                } finally {
+                    state.submitting = false;
+                    resetTurnstile();
+                    renderQuota();
+                    loadStatus();
+                }
+            });
+
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) {
+                    clearTimeout(promoTimer);
+                    promoTimer = null;
+                    return;
+                }
+                if (els.promoModal.classList.contains('open')) return;
+                var remaining = promoDueAt - Date.now();
+                schedulePromo(remaining > 0 ? remaining : 1200);
+            });
+
+            /* ---------- Start ---------- */
+            loadStatus();
+            schedulePromo(PROMO_FIRST_DELAY);
+        })();
     </script>
 </body>
 </html>

@@ -134,14 +134,25 @@ const classifyDbError = (error) => {
     const message = String(error.message || '');
     const combined = name + ' ' + message;
 
-    if (name === 'MongoParseError' || /URI malformed|Invalid scheme/i.test(message)) return 'INVALID_URI';
-    if (/ENOTFOUND|EAI_AGAIN|querySrv|queryTxt/i.test(message)) return 'DNS_ERROR';
+    if (name === 'MongoParseError' || /URI malformed|Invalid scheme|MONGODB_URI/i.test(message)) return 'INVALID_URI';
+    if (/ENOTFOUND|EAI_AGAIN|querySrv|queryTxt|getaddrinfo/i.test(message)) return 'DNS_ERROR';
     if (/Authentication failed|bad auth|SCRAM/i.test(message)) return 'AUTH_FAILED';
-    if (name === 'MongoServerError' && [13, 18, 8000].includes(error.code)) return 'AUTH_FAILED';
+    if (/MongoServerError/.test(name) && [13, 18, 8000].includes(error.code)) return 'AUTH_FAILED';
     if (/MongoNotConnectedError|Client must be connected|buffering timed out|topology is closed|connection .* closed/i.test(combined)) return 'CONNECTION_LOST';
-    if (name === 'MongoServerSelectionError' || name === 'MongoNetworkError' || /ETIMEDOUT|ECONNREFUSED|EHOSTUNREACH|ENETUNREACH|timed out/i.test(message)) return 'NETWORK_UNREACHABLE';
+    // Mongoose membungkus error driver jadi "MongooseServerSelectionError"
+    if (/Mongo(ose)?(ServerSelection|Network|Timeout)Error/i.test(name) ||
+        /server selection|Could not connect to any servers|IP whitelist|connect (ETIMEDOUT|ECONNREFUSED|EHOSTUNREACH|ENETUNREACH)|timed out/i.test(message)) {
+        return 'NETWORK_UNREACHABLE';
+    }
     return 'UNKNOWN';
 };
+
+// Buang detail sensitif (URI, host, IP) sebelum ditampilkan di /api/health
+const sanitizeDbMessage = (message) => String(message || '')
+    .replace(/mongodb(\+srv)?:\/\/[^\s"']+/gi, 'mongodb://<disembunyikan>')
+    .replace(/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.mongodb\.net(?::\d+)?/gi, '<host>.mongodb.net')
+    .replace(/\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b/g, '<ip>')
+    .slice(0, 400);
 
 const DB_ERROR_HINTS = {
     MONGODB_URI_MISSING: 'Env var MONGODB_URI belum diisi di Vercel (Settings > Environment Variables).',
@@ -551,6 +562,8 @@ app.get('/api/health', async (req, res) => {
     let database = 'disconnected';
     let databaseError = null;
     let databaseHint = null;
+    let databaseErrorName = null;
+    let databaseErrorDetail = null;
     try {
         await connectDB();
         database = mongoose.connection.readyState === 1 ? 'connected' : 'connecting';
@@ -558,6 +571,8 @@ app.get('/api/health', async (req, res) => {
         database = 'error';
         databaseError = classifyDbError(error);
         databaseHint = DB_ERROR_HINTS[databaseError];
+        databaseErrorName = String(error?.name || 'Error');
+        databaseErrorDetail = sanitizeDbMessage(error?.message);
         console.error('Health check database:', error.name, '-', error.message);
     }
 
@@ -583,6 +598,8 @@ app.get('/api/health', async (req, res) => {
         database,
         databaseError,
         databaseHint,
+        databaseErrorName,
+        databaseErrorDetail,
         cloudflare,
         region: process.env.VERCEL_REGION || null,
         node: process.version
