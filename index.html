@@ -315,6 +315,7 @@
         .alert.show { display: block; }
         .alert.error { background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.35); color: #ffb3b3; }
         .alert.success { background: rgba(53, 211, 154, 0.1); border-color: rgba(53, 211, 154, 0.35); color: #9cf0cf; }
+        .alert.warning { background: rgba(255, 213, 74, 0.1); border-color: rgba(255, 213, 74, 0.34); color: #ffe49a; }
 
         .result {
             display: none; align-items: center; gap: 12px; margin-top: 14px;
@@ -429,6 +430,65 @@
 
         .footnote { text-align: center; color: #5c5c6b; font-size: 11.5px; margin-top: 26px; }
 
+        /* ============ Tutorial singkat ============ */
+        .tutorial { margin-top: 34px; }
+        .tutorial-head h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+        .tutorial-head p { color: var(--muted); font-size: 13px; margin-top: 4px; max-width: 60ch; }
+        .tutorial-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 16px; }
+        .tut-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; padding: 18px; min-width: 0;
+        }
+        .tut-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .tut-badge {
+            flex: 0 0 auto; font-size: 10px; font-weight: 800; letter-spacing: 0.07em;
+            padding: 4px 9px; border-radius: 999px; background: var(--gold-soft);
+            color: var(--gold); border: 1px solid rgba(255, 213, 74, 0.26);
+        }
+        .tut-head h3 { font-size: 14.5px; font-weight: 800; }
+        .tut-list {
+            margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px;
+            font-size: 12.5px; line-height: 1.6; color: #c9c9d6;
+        }
+        .tut-list li::marker { color: var(--gold); font-weight: 700; }
+        .tut-list code, .tut-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+        .tut-list code {
+            font-size: 11.5px; padding: 1px 5px; border-radius: 5px;
+            background: #05050a; border: 1px solid var(--border); word-break: break-all;
+        }
+        .tut-code {
+            margin-top: 12px; padding: 11px 12px; border-radius: 10px;
+            background: #05050a; border: 1px solid var(--border);
+            font-size: 11px; line-height: 1.55; overflow-x: auto; color: #cfcfda;
+        }
+        .tut-note {
+            margin-top: 11px; padding-left: 9px; border-left: 2px solid rgba(255, 213, 74, 0.4);
+            font-size: 11.5px; color: #8b8b9c;
+        }
+        @media (min-width: 900px) {
+            .tutorial-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+        }
+
+        /* ============ Hasil cek domain ============ */
+        .domain-check {
+            display: none; margin-top: 9px; padding: 9px 11px; border-radius: 10px;
+            border: 1px solid var(--border); background: #05050a;
+            font-size: 11.5px; line-height: 1.6; color: #b9b9c8; word-break: break-word;
+        }
+        .domain-check.show { display: block; }
+        .domain-check.ok { border-color: rgba(53, 211, 154, 0.4); background: rgba(53, 211, 154, 0.08); }
+        .domain-check.warn { border-color: rgba(255, 213, 74, 0.35); background: rgba(255, 213, 74, 0.07); }
+        .domain-check.bad { border-color: rgba(255, 107, 107, 0.35); background: rgba(255, 107, 107, 0.07); }
+        .domain-check-title { font-weight: 800; margin-bottom: 2px; }
+        .domain-check.ok .domain-check-title { color: var(--green); }
+        .domain-check.warn .domain-check-title { color: var(--gold); }
+        .domain-check.bad .domain-check-title { color: #ffb3b3; }
+        .domain-check-hint { margin-top: 4px; color: #8b8b9c; }
+        .domain-check-dns {
+            margin-top: 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 10.5px; color: #7e7e8f;
+        }
+
         /* ============ Responsive ============ */
         @media (min-width: 900px) {
             main { padding: 56px 0 72px; }
@@ -534,7 +594,7 @@
                                        maxlength="30" autocomplete="off" autocapitalize="none" spellcheck="false" required>
                                 <span class="input-suffix">.publicfree.web.id</span>
                             </div>
-                            <p class="help" id="subdomainHelp">Huruf kecil, angka, dan strip (-). Maksimal 30 karakter.</p>
+                            <p class="help" id="subdomainHelp">Huruf kecil, angka, dan strip (-). Maksimal 30 karakter. Nama sistem seperti admin, login, api, owner tidak tersedia.</p>
                         </div>
 
                         <div class="field">
@@ -589,6 +649,57 @@
                     </div>
                 </section>
             </div>
+
+            <section class="tutorial" aria-labelledby="tutorialTitle">
+                <div class="tutorial-head">
+                    <h2 id="tutorialTitle">Quick tutorial</h2>
+                    <p>Pilih tujuan hostingmu. Urutannya penting: siapkan hosting dulu, baru buat record DNS di sini.</p>
+                </div>
+
+                <div class="tutorial-grid">
+                    <article class="tut-card">
+                        <div class="tut-head">
+                            <span class="tut-badge">VERCEL</span>
+                            <h3>Domain ke Vercel</h3>
+                        </div>
+                        <ol class="tut-list">
+                            <li>Deploy dulu project-mu di Vercel sampai URL <code>*.vercel.app</code> hidup (bukan 404).</li>
+                            <li>Buka <strong>Project → Settings → Domains → Add</strong>, masukkan <code>namamu.publicfree.web.id</code>.</li>
+                            <li>Vercel menampilkan nilai CNAME unik, contoh <code>a1b2c3d4.vercel-dns-017.com</code>. <strong>Salin nilai itu</strong> — jangan pakai <code>cname.vercel-dns.com</code> untuk project baru.</li>
+                            <li>Di sini pilih <strong>CNAME · Vercel</strong>, tempel nilai tadi, lalu buat subdomain.</li>
+                            <li>Balik ke Vercel, tunggu status domain menjadi <em>Valid Configuration</em> (1–5 menit).</li>
+                            <li>Klik <strong>Cek</strong> di List Domain. Kalau muncul “Aktif”, selesai.</li>
+                        </ol>
+                        <p class="tut-note">Vercel menulis <em>Invalid Configuration</em>? Berarti CNAME belum cocok dengan nilai yang diminta project, atau domain belum ditambahkan di langkah 2.</p>
+                    </article>
+
+                    <article class="tut-card">
+                        <div class="tut-head">
+                            <span class="tut-badge">VPS</span>
+                            <h3>Domain ke VPS</h3>
+                        </div>
+                        <ol class="tut-list">
+                            <li><strong>Pastikan web-nya sudah ada dan jalan di VPS.</strong> Uji dari dalam VPS: <code>curl -I http://127.0.0.1:3000</code> harus membalas 200.</li>
+                            <li>Buka firewall: <code>ufw allow 80,443/tcp</code>.</li>
+                            <li>Pasang Nginx sebagai reverse proxy ke port aplikasi (contoh di bawah).</li>
+                            <li>Pasang SSL: <code>certbot --nginx -d namamu.publicfree.web.id</code>.</li>
+                            <li>Di sini pilih <strong>A · VPS</strong>, isi IP publik VPS, lalu buat subdomain.</li>
+                            <li>Klik <strong>Cek</strong>: “Aktif (HTTP 200)” berarti DNS dan web sudah benar.</li>
+                        </ol>
+<pre class="tut-code">server {
+    listen 80;
+    server_name namamu.publicfree.web.id;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}</pre>
+                        <p class="tut-note">Kalau “Cek” bilang <em>Tidak ada web yang merespons</em>: aplikasinya mati, port-nya salah, atau Nginx belum jalan.</p>
+                    </article>
+                </div>
+            </section>
 
             <p class="footnote">Dibuat dengan Cloudflare API · Kuota dihitung per IP Address</p>
         </div>
@@ -687,6 +798,7 @@
                 captchaToken: '',
                 deleting: false,
                 syncing: false,
+                reserved: [],
                 lastActivity: 0
             };
 
@@ -761,6 +873,7 @@
                 state.limit = Number(data.limit) > 0 ? Number(data.limit) : 2;
                 state.used = Math.max(0, Number(data.used) || 0);
                 state.subdomains = Array.isArray(data.subdomains) ? data.subdomains : [];
+                if (Array.isArray(data.reserved) && data.reserved.length) state.reserved = data.reserved;
                 state.statusLoaded = true;
             }
 
@@ -845,6 +958,12 @@
                     var actions = document.createElement('div');
                     actions.className = 'row-actions';
 
+                    var check = document.createElement('button');
+                    check.type = 'button';
+                    check.className = 'copy-btn';
+                    check.textContent = 'Cek';
+                    check.addEventListener('click', function () { runCheck(item, check); });
+
                     var copy = document.createElement('button');
                     copy.type = 'button';
                     copy.className = 'copy-btn';
@@ -857,6 +976,7 @@
                     del.textContent = 'Hapus';
                     del.addEventListener('click', function () { confirmDelete(item, del); });
 
+                    actions.appendChild(check);
                     actions.appendChild(copy);
                     actions.appendChild(del);
 
@@ -885,12 +1005,82 @@
                         meta.appendChild(detail);
                     }
 
+                    var checkBox = document.createElement('div');
+                    checkBox.className = 'domain-check';
+                    checkBox.setAttribute('role', 'status');
+                    checkBox.setAttribute('aria-live', 'polite');
+
                     row.appendChild(top);
                     row.appendChild(meta);
+                    row.appendChild(checkBox);
                     frag.appendChild(row);
                 });
 
                 els.domainList.appendChild(frag);
+            }
+
+            /* ---------- Cek DNS + server tujuan ---------- */
+            function checkKind(status) {
+                if (status === 'active') return 'ok';
+                if (status === 'pending' || status === 'dns_mismatch' || status === 'dead_target') return 'warn';
+                return 'bad';
+            }
+
+            async function runCheck(item, button) {
+                var row = button.closest('.domain-item');
+                var box = row ? row.querySelector('.domain-check') : null;
+                if (!box || button.disabled) return;
+
+                button.disabled = true;
+                button.textContent = 'Mengecek...';
+                box.className = 'domain-check show';
+                box.textContent = 'Menyambung ke DNS publik dan server tujuan...';
+
+                try {
+                    var data = await apiFetch('/api/subdomains/' + encodeURIComponent(item.name) + '/check');
+                    var check = data.check || {};
+
+                    box.className = 'domain-check show ' + checkKind(check.status);
+                    box.textContent = '';
+
+                    var title = document.createElement('div');
+                    title.className = 'domain-check-title';
+                    title.textContent = check.title || 'Hasil pemeriksaan';
+                    box.appendChild(title);
+
+                    if (check.message) {
+                        var message = document.createElement('p');
+                        message.textContent = check.message;
+                        box.appendChild(message);
+                    }
+
+                    if (check.hint) {
+                        var hint = document.createElement('p');
+                        hint.className = 'domain-check-hint';
+                        hint.textContent = check.hint;
+                        box.appendChild(hint);
+                    }
+
+                    var parts = [];
+                    if (check.dns && check.dns.cname) parts.push('CNAME → ' + check.dns.cname);
+                    if (check.dns && check.dns.addresses && check.dns.addresses.length) {
+                        parts.push('IP → ' + check.dns.addresses.join(', '));
+                    }
+                    if (!parts.length) parts.push('DNS → belum ada');
+                    if (check.http && check.http.status) parts.push('HTTP → ' + check.http.status);
+                    if (check.http && check.http.server) parts.push('server → ' + check.http.server);
+
+                    var detail = document.createElement('p');
+                    detail.className = 'domain-check-dns';
+                    detail.textContent = parts.join(' · ');
+                    box.appendChild(detail);
+                } catch (err) {
+                    box.className = 'domain-check show bad';
+                    box.textContent = err.message;
+                } finally {
+                    button.disabled = false;
+                    button.textContent = 'Cek';
+                }
             }
 
             function renderSkeleton() {
@@ -1182,8 +1372,8 @@
                         setHelp(els.targetHelp, 'Contoh: 103.123.45.67');
                     } else {
                         els.targetLabel.textContent = 'Target CNAME';
-                        els.target.placeholder = 'cname.vercel-dns.com';
-                        setHelp(els.targetHelp, 'Contoh: cname.vercel-dns.com atau domain lain tanpa http://');
+                        els.target.placeholder = 'a1b2c3d4.vercel-dns-017.com';
+                        setHelp(els.targetHelp, 'Salin persis dari Vercel → Project → Settings → Domains (bentuknya xxxx.vercel-dns-017.com).');
                     }
                 });
             });
@@ -1229,14 +1419,16 @@
             els.subdomain.addEventListener('input', function () {
                 if (els.subdomain.getAttribute('aria-invalid') === 'true') {
                     els.subdomain.removeAttribute('aria-invalid');
-                    setHelp(els.subdomainHelp, 'Huruf kecil, angka, dan strip (-). Maksimal 30 karakter.');
+                    setHelp(els.subdomainHelp, 'Huruf kecil, angka, dan strip (-). Maksimal 30 karakter. Nama sistem seperti admin, login, api, owner tidak tersedia.');
                 }
             });
 
             els.target.addEventListener('input', function () {
                 if (els.target.getAttribute('aria-invalid') === 'true') {
                     els.target.removeAttribute('aria-invalid');
-                    setHelp(els.targetHelp, state.recordType === 'A' ? 'Contoh: 103.123.45.67' : 'Contoh: cname.vercel-dns.com');
+                    setHelp(els.targetHelp, state.recordType === 'A'
+                        ? 'Contoh: 103.123.45.67'
+                        : 'Salin persis dari Vercel → Project → Settings → Domains (bentuknya xxxx.vercel-dns-017.com).');
                 }
             });
 
@@ -1258,6 +1450,13 @@
                     return;
                 }
 
+                if (state.reserved.indexOf(name) !== -1) {
+                    els.subdomain.setAttribute('aria-invalid', 'true');
+                    setHelp(els.subdomainHelp, 'Nama "' + name + '" dipakai sistem PublicFree (admin, login, api, owner, www, mail, dan nama infrastruktur lain). Pilih nama lain.', true);
+                    els.subdomain.focus();
+                    return;
+                }
+
                 if (type === 'A' && !IPV4_RE.test(target)) {
                     els.target.setAttribute('aria-invalid', 'true');
                     setHelp(els.targetHelp, 'Masukkan alamat IPv4 yang valid, contoh 103.123.45.67.', true);
@@ -1267,7 +1466,7 @@
 
                 if (type === 'CNAME' && !HOSTNAME_RE.test(target)) {
                     els.target.setAttribute('aria-invalid', 'true');
-                    setHelp(els.targetHelp, 'Masukkan domain CNAME tanpa http://, contoh cname.vercel-dns.com.', true);
+                    setHelp(els.targetHelp, 'Masukkan domain CNAME tanpa http://, contoh xxxx.vercel-dns-017.com (salin dari Vercel).', true);
                     els.target.focus();
                     return;
                 }
@@ -1311,7 +1510,10 @@
                     });
 
                     showResult(result.subdomain);
-                    showAlert('success', result.message);
+                    showAlert(
+                        result.warning ? 'warning' : 'success',
+                        result.warning ? result.message + ' ' + result.warning : result.message
+                    );
 
                     if (Number.isFinite(Number(result.used))) state.used = Number(result.used);
                     if (Number.isFinite(Number(result.limit))) state.limit = Number(result.limit);
@@ -1321,8 +1523,10 @@
                     state.statusLoaded = true;
 
                     els.form.reset();
-                    setHelp(els.subdomainHelp, 'Huruf kecil, angka, dan strip (-). Maksimal 30 karakter.');
-                    setHelp(els.targetHelp, type === 'A' ? 'Contoh: 103.123.45.67' : 'Contoh: cname.vercel-dns.com');
+                    setHelp(els.subdomainHelp, 'Huruf kecil, angka, dan strip (-). Maksimal 30 karakter. Nama sistem seperti admin, login, api, owner tidak tersedia.');
+                    setHelp(els.targetHelp, type === 'A'
+                        ? 'Contoh: 103.123.45.67'
+                        : 'Salin persis dari Vercel → Project → Settings → Domains (bentuknya xxxx.vercel-dns-017.com).');
                 } catch (err) {
                     showAlert('error', err.message);
                 } finally {

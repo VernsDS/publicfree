@@ -5,6 +5,7 @@ const cors = require('cors');
 const axios = require('axios');
 const crypto = require('crypto');
 const dns = require('dns');
+const https = require('https');
 const path = require('path');
 const helmet = require('helmet');
 const mongoose = require('mongoose');
@@ -289,7 +290,36 @@ const isValidHostname = (value) => {
 };
 
 const SUBDOMAIN_REGEX = /^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/;
-const RESERVED_SUBDOMAINS = new Set(['www', 'api', 'admin', 'mail', 'ns1', 'ns2']);
+// Nama yang dipakai sistem / rawan dipakai untuk phishing. Tidak bisa dibuat
+// lewat API maupun lewat form (frontend mengambil daftar ini dari /api/status).
+const RESERVED_SUBDOMAINS = new Set(
+    (
+        // inti layanan
+        'www www2 api api2 admin administrator adminpanel owner root system host hosting vps server ' +
+        'publicfree free subdomain mail email webmail mailer smtp smtp1 pop pop3 imap imap1 ' +
+        // DNS & infrastruktur
+        'ns ns1 ns2 ns3 ns4 dns dns1 dns2 mx mx1 mx2 autodiscover autoconfig postmaster hostmaster webmaster abuse ' +
+        // panel & login
+        'cpanel whm panel webdisk cpcalendars cpcontacts login signin signup register auth sso oauth account accounts ' +
+        'user users member members profile id my secure security ' +
+        // akses server
+        'ftp sftp ssh vpn proxy gateway router ' +
+        // environment
+        'dev devops staging stage test testing demo beta alpha sandbox preview prod production ' +
+        // aplikasi & bisnis
+        'app apps portal dashboard console support help status billing invoice payment payments pay checkout cart ' +
+        'shop store blog docs wiki news newsletter promo ads analytics stats ' +
+        // aset & storage
+        'cdn static assets img images media files file download downloads upload storage backup ' +
+        // database & tooling
+        'db database mysql postgres postgresql redis mongo mongodb elastic kibana grafana prometheus metrics monitor monitoring ' +
+        'git gitlab github gitea svn registry docker kubernetes k8s ' +
+        // brand / penyedia
+        'cloudflare vercel netlify heroku aws azure gcp google ' +
+        // internal
+        'internal intranet corp company hr finance legal noc ops'
+    ).split(/\s+/)
+);
 
 // Daftar subdomain milik satu IP, digabung dari data baru (records) dan data lama (subdomains)
 const listSubdomains = (user) => {
@@ -669,6 +699,237 @@ const syncUserRecords = async (ip, options) => {
     return { removed, skipped: false };
 };
 
+// ================= CEK DOMAIN (DNS + HTTPS) =================
+// Dipakai tombol "Cek" di daftar domain: memastikan record sudah tersebar di
+// DNS publik DAN server tujuan (Vercel/VPS) benar-benar melayani domain itu.
+const VERCEL_LEGACY_TARGETS = new Set(['cname.vercel-dns.com', 'cname.vercel-dns-017.com']);
+
+const normalizeTarget = (value) => String(value || '').trim().toLowerCase().replace(/\.$/, '');
+
+const isLegacyVercelTarget = (value) => VERCEL_LEGACY_TARGETS.has(normalizeTarget(value));
+
+// Cek DNS sengaja memakai resolver publik (bukan resolver jaringan server),
+// supaya hasilnya sama dengan yang dilihat pengunjung dari jaringan lain.
+const DNS_PUBLIC_SERVERS = ['1.1.1.1', '8.8.8.8'];
+
+const readDns = async (fqdn) => {
+    const resolver = new dns.promises.Resolver({ timeout: 3500, tries: 1 });
+    resolver.setServers(DNS_PUBLIC_SERVERS);
+
+    const safe = (promise) => promise.catch(() => []);
+    const [cname, a, aaaa] = await Promise.all([
+        safe(resolver.resolveCname(fqdn)),
+        safe(resolver.resolve4(fqdn)),
+        safe(resolver.resolve6(fqdn))
+    ]);
+
+    const result = {
+        cname: String(cname[0] || '').replace(/\.$/, ''),
+        addresses: a.concat(aaaa)
+    };
+
+    if (result.cname || result.addresses.length) return result;
+
+    // Sebagian jaringan memblokir DNS keluar. lookup() memakai resolver OS dan
+    // tetap mengikuti rantai CNAME, jadi dipakai sebagai cadangan.
+    try {
+        const found = await dns.promises.lookup(fqdn, { all: true });
+        result.addresses = found.map((item) => item.address);
+    } catch (error) {
+        /* domain memang belum ada */
+    }
+
+    return result;
+};
+
+const probeHttps = (hostname) => new Promise((resolve) => {
+    let settled = false;
+    const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+    };
+
+    const req = https.request({
+        hostname,
+        servername: hostname,
+        port: 443,
+        path: '/',
+        method: 'GET',
+        // Kita mau mendiagnosis sendiri, bukan menggagalkan permintaan karena sertifikat.
+        rejectUnauthorized: false,
+        timeout: 6000,
+        headers: { 'User-Agent': 'PublicFree-DomainChecker/1.0' }
+    }, (res) => {
+        let body = '';
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => {
+            if (body.length < 1500) body += String(chunk).slice(0, 1500 - body.length);
+        });
+        res.on('end', () => {
+            const socket = res.socket;
+            const cert = socket && typeof socket.getPeerCertificate === 'function'
+                ? socket.getPeerCertificate()
+                : null;
+
+            finish({
+                ok: true,
+                status: res.statusCode,
+                server: String(res.headers.server || ''),
+                body,
+                certificate: cert && cert.fingerprint
+                    ? { cn: cert.subject?.CN || '', issuer: cert.issuer?.O || '' }
+                    : null
+            });
+        });
+        res.on('error', () => finish({ ok: true, status: res.statusCode, server: String(res.headers.server || ''), body, certificate: null }));
+    });
+
+    req.on('timeout', () => { req.destroy(); finish({ ok: false, error: 'TIMEOUT' }); });
+    req.on('error', (error) => finish({ ok: false, error: error.code || error.message }));
+    req.end();
+});
+
+const checkDomainRecord = async (record) => {
+    const fqdn = normalizeName(record.name);
+    const type = String(record.type || 'A').toUpperCase();
+    const storedTarget = normalizeTarget(record.target);
+    const lookup = await readDns(fqdn);
+    const resolved = Boolean(lookup.cname) || lookup.addresses.length > 0;
+
+    const base = {
+        name: fqdn,
+        type,
+        target: storedTarget,
+        dns: { cname: lookup.cname || null, addresses: lookup.addresses },
+        http: null,
+        status: 'pending',
+        title: 'Menunggu propagasi DNS',
+        message: 'Record belum terbaca di DNS publik. Biasanya perlu 1-5 menit setelah dibuat.',
+        hint: 'Klik "Cek" lagi beberapa saat lagi. Kalau masih kosong setelah 10 menit, hapus lalu buat ulang.',
+        checkedAt: new Date().toISOString()
+    };
+
+    if (!resolved) return base;
+
+    // CNAME menunjuk domain yang sudah tidak ada (NXDOMAIN).
+    if (type === 'CNAME' && lookup.cname && !lookup.addresses.length) {
+        return {
+            ...base,
+            status: 'dead_target',
+            title: 'Target CNAME tidak bisa di-resolve',
+            message: `${fqdn} mengarah ke ${lookup.cname}, tapi domain tujuan itu tidak punya alamat IP (NXDOMAIN).`,
+            hint: 'Pastikan target CNAME masih aktif dan ditulis persis seperti yang diberikan penyedia hosting.'
+        };
+    }
+
+    if (type === 'CNAME' && lookup.cname && storedTarget && lookup.cname !== storedTarget) {
+        return {
+            ...base,
+            status: 'dns_mismatch',
+            title: 'DNS mengarah ke tempat lain',
+            message: `DNS publik mengarah ke ${lookup.cname}, bukan ${storedTarget}.`,
+            hint: 'Hapus subdomain ini lalu buat ulang dengan target yang benar.'
+        };
+    }
+
+    if (type === 'A' && storedTarget && !lookup.addresses.includes(storedTarget)) {
+        return {
+            ...base,
+            status: 'dns_mismatch',
+            title: 'IP di DNS berbeda',
+            message: `DNS publik mengarah ke ${lookup.addresses.join(', ')}, bukan ${storedTarget}.`,
+            hint: 'Hapus subdomain ini lalu buat ulang dengan IP yang benar, atau tunggu cache DNS kedaluwarsa.'
+        };
+    }
+
+    const http = await probeHttps(fqdn);
+    base.http = http.ok
+        ? { status: http.status, server: http.server || null, certificate: http.certificate || null }
+        : { status: null, server: null, error: http.error || 'UNKNOWN' };
+
+    const targetHints = `${lookup.cname} ${storedTarget}`;
+    const targetIsVercel = /vercel-dns/i.test(targetHints);
+    const legacy = targetIsVercel && isLegacyVercelTarget(lookup.cname || storedTarget);
+    const vercelHint = legacy
+        ? 'Target cname.vercel-dns.com adalah target lama. Buka Vercel -> Project -> Settings -> Domains: di sana ada nilai CNAME unik (bentuknya xxxx.vercel-dns-017.com). Perbarui record ini dengan nilai tersebut.'
+        : 'Buka Vercel -> pilih project -> Settings -> Domains -> Add, masukkan domain ini. Vercel akan menerbitkan sertifikat otomatis setelah CNAME cocok.';
+
+    if (http.ok) {
+        if (http.status >= 200 && http.status < 400) {
+            return {
+                ...base,
+                status: 'active',
+                title: 'Aktif',
+                message: `${fqdn} sudah merespons (HTTP ${http.status}${http.server ? ' via ' + http.server : ''}).`,
+                hint: ''
+            };
+        }
+
+        if (targetIsVercel && /DEPLOYMENT_NOT_FOUND|NOT_FOUND/i.test(http.body || '')) {
+            return {
+                ...base,
+                status: 'vercel_not_configured',
+                title: 'Vercel belum mengenali domain ini',
+                message: 'DNS sudah benar, tetapi Vercel membalas "DEPLOYMENT_NOT_FOUND". Artinya domain ini belum ditambahkan ke project Vercel (atau CNAME-nya bukan nilai yang diminta project).',
+                hint: vercelHint
+            };
+        }
+
+        if (http.status === 401 || http.status === 403) {
+            return {
+                ...base,
+                status: 'protected',
+                title: 'Domain dilindungi (401/403)',
+                message: `Domain merespons, tetapi menolak akses publik (HTTP ${http.status}).`,
+                hint: targetIsVercel
+                    ? 'Kalau ini project Vercel, matikan Deployment Protection (Settings -> Deployment Protection) supaya bisa diakses publik.'
+                    : 'Periksa proteksi di server: basic auth Nginx, IP allowlist, atau halaman login yang menahan semua pengunjung.'
+            };
+        }
+
+        if (http.status >= 500) {
+            return {
+                ...base,
+                status: 'server_error',
+                title: 'Server tujuan error',
+                message: `Domain merespons dengan HTTP ${http.status}${http.server ? ' dari ' + http.server : ''}.`,
+                hint: 'Cek log aplikasi. Untuk VPS: pastikan service aplikasi hidup dan Nginx meneruskan ke port yang benar.'
+            };
+        }
+
+        return {
+            ...base,
+            status: 'pending',
+            title: `Merespons HTTP ${http.status}`,
+            message: 'Domain sudah tersambung, tetapi halaman utamanya belum membalas normal.',
+            hint: 'Periksa konfigurasi aplikasi di server tujuan.'
+        };
+    }
+
+    const error = String(http.error || 'UNKNOWN');
+
+    if (['ECONNREFUSED', 'EHOSTUNREACH', 'ENETUNREACH', 'ETIMEDOUT', 'TIMEOUT'].includes(error)) {
+        return {
+            ...base,
+            status: 'unreachable',
+            title: 'Tidak ada web yang merespons',
+            message: `DNS sudah mengarah ke ${lookup.addresses.join(', ') || fqdn}, tetapi port 443 menolak / tidak menjawab (${error}).`,
+            hint: 'Untuk VPS: pastikan web-nya benar-benar jalan (curl http://127.0.0.1:PORT), Nginx reverse proxy aktif, firewall membuka 80/443, dan SSL sudah dipasang.'
+        };
+    }
+
+    return {
+        ...base,
+        status: 'no_certificate',
+        title: targetIsVercel ? 'Vercel belum menerbitkan sertifikat' : 'Sertifikat SSL belum siap',
+        message: `Koneksi HTTPS ditutup sebelum sertifikat dikirim (${error}). Biasanya berarti domain belum terdaftar di hosting tujuan.`,
+        hint: targetIsVercel
+            ? vercelHint
+            : `Pasang SSL di server, misalnya: certbot --nginx -d ${fqdn}`
+    };
+};
+
 const loadOwnedData = async (ip) => {
     const user = await withDB(() => User.findOne({ ipAddress: ip }).lean());
     const used = Math.max(0, Number(user?.usedQuota) || 0);
@@ -775,7 +1036,7 @@ app.get('/api/status', async (req, res) => {
     try {
         await syncUserRecords(ip).catch((error) => console.error('Sync otomatis gagal:', error.message));
         const data = await loadOwnedData(ip);
-        return res.json({ success: true, ...data });
+        return res.json({ success: true, reserved: Array.from(RESERVED_SUBDOMAINS), ...data });
     } catch (error) {
         console.error('Error API Status:', error.message);
         return res.status(503).json({
@@ -862,8 +1123,44 @@ app.delete('/api/subdomains/:name', rateLimit('delete', 10 * 60 * 1000, 20), asy
         });
     } catch (error) {
         const message = describeCloudflareError(error) || publicErrorMessage(error);
-        console.error('Error API Delete:', error.message);
-        return res.status(502).json({ success: false, message });
+        console.error('Error API Delete:', error.message);        return res.status(502).json({ success: false, message });
+    }
+});
+
+// 6b. Endpoint Cek Domain: DNS publik + kesiapan server tujuan (Vercel/VPS)
+app.get('/api/subdomains/:name/check', rateLimit('check', 5 * 60 * 1000, 60), async (req, res) => {
+    const ip = getClientIp(req);
+    const requested = normalizeName(decodeURIComponent(req.params.name || ''));
+
+    if (!requested) {
+        return res.status(400).json({ success: false, message: 'Nama subdomain tidak valid.' });
+    }
+
+    const fqdn = requested.includes('.') ? requested : `${requested}.${PUBLIC_DOMAIN}`;
+
+    let user;
+    try {
+        await connectDB();
+        user = await User.findOne({ ipAddress: ip }).lean();
+    } catch (error) {
+        console.error('Error database saat cek domain:', error.message);
+        return res.status(503).json({ success: false, message: 'Database sedang tidak bisa diakses. Coba lagi beberapa saat.' });
+    }
+
+    const owned = user
+        ? listSubdomains(user).find((item) => normalizeName(item.name) === fqdn)
+        : null;
+
+    if (!owned) {
+        return res.status(404).json({ success: false, message: `${fqdn} bukan milik IP Address ini.` });
+    }
+
+    try {
+        const check = await checkDomainRecord(owned);
+        return res.json({ success: true, check });
+    } catch (error) {
+        console.error('Error cek domain:', error.message);
+        return res.status(502).json({ success: false, message: 'Gagal memeriksa domain. Coba lagi beberapa saat.' });
     }
 });
 
@@ -894,7 +1191,10 @@ app.post('/api/create', rateLimit('create', 10 * 60 * 1000, 8), async (req, res)
         });
     }
     if (RESERVED_SUBDOMAINS.has(subdomain)) {
-        return res.status(400).json({ success: false, message: `Nama "${subdomain}" tidak bisa dipakai, silakan pilih nama lain.` });
+        return res.status(400).json({
+            success: false,
+            message: `Nama "${subdomain}" dipakai sistem PublicFree (contoh: admin, login, api, owner, www, mail). Pilih nama lain.`
+        });
     }
     if (recordType !== 'A' && recordType !== 'CNAME') {
         return res.status(400).json({ success: false, message: 'Tipe record harus A atau CNAME.' });
@@ -991,10 +1291,16 @@ app.post('/api/create', rateLimit('create', 10 * 60 * 1000, 8), async (req, res)
 
     await recordCreateStat();
 
+    // Target CNAME lama masih diterima, tapi Vercel biasanya minta nilai unik per project.
+    const warning = recordType === 'CNAME' && isLegacyVercelTarget(target)
+        ? 'Catatan: cname.vercel-dns.com adalah target CNAME lama. Vercel sekarang memberi nilai unik per project (contoh: xxxx.vercel-dns-017.com) di Project -> Settings -> Domains. Kalau memakai target lama, Vercel bisa menampilkan "Invalid Configuration".'
+        : null;
+
     return res.json({
         success: true,
         message: `${fqdn} berhasil dibuat dan sudah terdaftar di Cloudflare!`,
         subdomain: record,
+        warning,
         used: reserved.usedQuota,
         limit: MAX_SUBDOMAINS,
         remaining: Math.max(0, MAX_SUBDOMAINS - reserved.usedQuota),
